@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f5f5f3" />
+    <meta name="description" data-i18n-content="description" content="一团软乎乎的 WebGPU 史莱姆。捏一捏，拖一拖，把今天放轻松。" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title data-i18n="title">softie · 软乎乎。</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      body { margin: 0; background: #f5f5f3; font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif; }
+      .preloader { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; background: #f5f5f3; transition: opacity .45s cubic-bezier(0.16, 1, 0.3, 1), visibility .45s cubic-bezier(0.16, 1, 0.3, 1), transform .45s cubic-bezier(0.16, 1, 0.3, 1); }
+      .preloader.is-done { opacity: 0; visibility: hidden; pointer-events: none; transform: scale(0.96); }
+      .wordmark { color: #171817; text-decoration: none; }
+      .jelly-mark { width: 44px; height: 44px; color: #171817; }
+    </style>
+  </head>
+  <body>
+    <div id="loading" class="preloader" role="status" aria-live="polite">
+      <div class="preloader-inner">
+        <div class="preloader-slime-wrap">
+          <svg class="preloader-slime" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="loading-slime-fill" x1="24" y1="5" x2="24" y2="43" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#ffd5e5" stop-opacity="0.9" />
+                <stop offset="100%" stop-color="#f17fa9" stop-opacity="0.8" />
+              </linearGradient>
+            </defs>
+            <path class="preloader-slime-body" d="M24 5c-5.9 0-6.3 7.2-10.3 9.8C7.6 18.7 5 24.2 5 30.3 5 38.8 12.6 43 24 43s19-4.2 19-12.7c0-6.1-2.6-11.6-8.7-15.5C30.3 12.2 29.9 5 24 5Z" stroke="#221d20" stroke-width="2.4" stroke-linejoin="round" fill="url(#loading-slime-fill)" />
+            <!-- Soft cute blush -->
+            <circle cx="13.2" cy="31.2" r="2.4" fill="#f87aa5" opacity="0.6" />
+            <circle cx="34.8" cy="31.2" r="2.4" fill="#f87aa5" opacity="0.6" />
+            <g class="preloader-eyes">
+              <!-- Left eye with shine -->
+              <circle class="preloader-eye preloader-eye-left" cx="17.2" cy="27.8" r="2.3" fill="#221d20" />
+              <circle cx="18" cy="27" r="0.75" fill="#ffffff" />
+              <!-- Right eye with shine -->
+              <circle class="preloader-eye preloader-eye-right" cx="30.8" cy="27.8" r="2.3" fill="#221d20" />
+              <circle cx="31.6" cy="27" r="0.75" fill="#ffffff" />
+            </g>
+            <path class="preloader-mouth" d="M21.2 31.5q2.8 3.2 5.6 0" stroke="#221d20" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <div class="preloader-shadow" aria-hidden="true"></div>
+        </div>
+        <div class="preloader-message">
+          <p class="preloader-text" data-i18n="loading">让软乎乎醒过来…</p>
+          <span class="preloader-pulse-bar" aria-hidden="true"></span>
+        </div>
+      </div>
+    </div>
+
+    <main class="playground">
+      <header class="masthead">
+        <a class="wordmark" href="./" aria-label="softie 首页" data-i18n-label="home">
+          <svg class="jelly-mark" width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 5c-5.9 0-6.3 7.2-10.3 9.8C7.6 18.7 5 24.2 5 30.3 5 38.8 12.6 43 24 43s19-4.2 19-12.7c0-6.1-2.6-11.6-8.7-15.5C30.3 12.2 29.9 5 24 5Z" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="17.2" cy="28" r="2.2" fill="currentColor"/><circle cx="30.8" cy="28" r="2.2" fill="currentColor"/><path d="M21.2 31.5q2.8 3 5.6 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>softie</span>
+        </a>
+        <div class="masthead-tools">
+          <p class="masthead-note" data-i18n="tagline">留一点空间，放轻松</p>
+          <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="音效开关" data-i18n-label="soundToggle" title="音效开关">
+            <svg class="sound-icon sound-icon-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+            </svg>
+            <svg class="sound-icon sound-icon-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="22" y1="9" x2="16" y2="15"></line>
+              <line x1="16" y1="9" x2="22" y2="15"></line>
+            </svg>
+          </button>
+          <div class="language-switch" data-lang="zh" role="group" aria-label="界面语言" data-i18n-label="language">
+            <span class="language-switch-indicator" aria-hidden="true"></span>
+            <button type="button" data-language="zh" lang="zh-CN" aria-pressed="true" aria-label="中文" data-i18n-label="chinese">中文</button>
+            <button type="button" data-language="en" lang="en" aria-pressed="false" aria-label="English 英文" data-i18n-label="english">EN</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-text">
+          <h1 id="page-title" data-i18n="heading">软乎乎。</h1>
+          <p data-i18n="intro">捏一捏，把今天放轻松。</p>
+        </div>
+        <button id="stage-reset" class="stage-reset-btn" type="button" data-action="reset" aria-label="恢复默认" title="恢复默认" data-i18n-title="reset" data-i18n-label="reset">
+          <svg class="reset-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span class="sr-only" data-i18n="reset">恢复默认</span>
+        </button>
+      </section>
+
+      <div id="stage" class="stage" data-interaction="idle" aria-busy="true">
+        <canvas id="slime-canvas" tabindex="0" aria-label="互动史莱姆：按住揉捏，拖动拎起，松手回弹。也可以按空格键戳一下。" data-i18n-label="canvas" aria-describedby="stage-help"></canvas>
+        <button id="stage-poke" class="poke-button stage-poke-btn" type="button" data-action="poke" title="戳一下 · 空格键" data-i18n-title="pokeTitle"><span data-i18n="poke">戳一下</span><span class="sparkle" aria-hidden="true">✦</span></button>
+        <div id="unsupported" class="stage-message stage-error" role="alert" hidden>
+          <h2 data-i18n="waiting">等待 WebGPU</h2>
+          <p id="error-message"></p>
+        </div>
+      </div>
+
+      <p id="stage-help" class="interaction-hint"><span data-i18n="hold">按住揉捏</span><span class="separator" aria-hidden="true">·</span><span data-i18n="drag">拖动拎起</span><span class="separator" aria-hidden="true">·</span><span data-i18n="release">松手回弹</span></p>
+
+      <aside class="settings" aria-labelledby="settings-title">
+        <div class="settings-heading">
+          <h2 id="settings-title" data-i18n="settings">随你揉捏</h2>
+          <p data-i18n="settingsNote">把心情捏成喜欢的样子</p>
+        </div>
+        <fieldset id="settings-fieldset" disabled>
+          <legend class="sr-only" data-i18n="settingsLabel">史莱姆设置</legend>
+          <div class="color-control">
+            <div class="control-heading color-heading">
+              <span id="color-label" class="control-label" data-i18n="color">颜色</span>
+              <p id="color-name" class="color-name" aria-live="polite">草莓史莱姆</p>
+            </div>
+            <div class="swatches" role="group" aria-labelledby="color-label">
+              <button class="swatch is-selected" type="button" data-color="#f17fa9" data-color-name="strawberry" data-i18n-label="strawberryLabel" aria-label="草莓史莱姆，粉色" aria-pressed="true" style="--swatch: #f17fa9"><span></span></button>
+              <button class="swatch" type="button" data-color="#a5e0cd" data-color-name="mint" data-i18n-label="mintLabel" aria-label="薄荷史莱姆，青绿色" aria-pressed="false" style="--swatch: #a5e0cd"><span></span></button>
+              <button class="swatch" type="button" data-color="#c8afec" data-color-name="grape" data-i18n-label="grapeLabel" aria-label="葡萄史莱姆，淡紫色" aria-pressed="false" style="--swatch: #c8afec"><span></span></button>
+              <label class="swatch swatch-custom" for="custom-color" data-color="#ffb86c" data-color-name="custom" data-i18n-label="customLabel" data-i18n-title="customLabel" aria-label="自定义颜色" title="自定义颜色" aria-pressed="false" style="--swatch: #ffb86c">
+                <input type="color" id="custom-color" class="custom-color-input" value="#ffb86c" data-i18n-label="customLabel" aria-label="自定义颜色" />
+                <span></span>
+              </label>
+            </div>
+          </div>
+          <div class="range-control">
+            <div class="control-heading"><label for="stiffness" data-i18n="stiffness">软硬</label><output id="stiffness-value" for="stiffness">35</output></div>
+            <input id="stiffness" type="range" min="0" max="100" value="35" step="1" style="--value: 35%" aria-describedby="stiffness-description" />
+            <div id="stiffness-description" class="range-description"><span data-i18n="soft">糯叽叽</span><span data-i18n="springy">有弹性</span></div>
+          </div>
+          <div class="range-control">
+            <div class="control-heading"><label for="damping" data-i18n="damping">阻尼</label><output id="damping-value" for="damping">45</output></div>
+            <input id="damping" type="range" min="0" max="100" value="45" step="1" style="--value: 45%" aria-describedby="damping-description" />
+            <div id="damping-description" class="range-description"><span data-i18n="wobbly">晃悠悠</span><span data-i18n="settled">很乖巧</span></div>
+          </div>
+          <div class="range-control">
+            <div class="control-heading"><label for="volume" data-i18n="volume">音量</label><output id="volume-value" for="volume">80%</output></div>
+            <input id="volume" type="range" min="0" max="100" value="80" step="1" style="--value: 80%" aria-describedby="volume-description" />
+            <div id="volume-description" class="range-description"><span data-i18n="volumeMute">静音</span><span data-i18n="volumeMax">最大</span></div>
+          </div>
+          <div class="actions">
+            <button id="poke" class="poke-button" type="button" title="戳一下 · 空格键" data-i18n-title="pokeTitle"><span data-i18n="poke">戳一下</span><span class="sparkle" aria-hidden="true">✦</span></button>
+            <button id="reset" class="reset-button" type="button" data-i18n="reset">恢复默认</button>
+          </div>
+        </fieldset>
+      </aside>
+
+      <footer class="page-footer">
+        <div id="renderer-status" class="renderer-status" data-state="pending" role="status"><span class="status-dot" aria-hidden="true"></span><span id="status-text">连接 WebGPU</span><span id="fps" aria-label="实时帧率" data-i18n-label="fps">— FPS</span></div>
+        <p class="footer-note" data-i18n="footer">慢一点，也没关系。</p>
+      </footer>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

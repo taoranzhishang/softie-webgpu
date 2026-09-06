@@ -1,0 +1,68 @@
+# softie · 软乎乎。
+
+一个原生 WebGPU 的 Three.js 软体小玩具。
+
+## 运行
+
+```sh
+npm install
+npm run dev
+```
+
+打开 http://127.0.0.1:5173 。生产构建与预览：
+
+```sh
+npm run build
+npm run preview
+```
+
+预览地址 http://127.0.0.1:4173 。`dist` 可以作为静态站点部署；线上需要 HTTPS，本地使用 localhost。
+
+## 玩法
+
+- 在史莱姆上按住：局部凹陷；拖动：拎起、拉伸与横向揉捏。
+- 松手：带惯性落回看不见的桌面，压扁后晃着恢复。
+- 「戳一下」或空格：弹一下。
+- 三种颜色、软硬、阻尼实时调整；「恢复默认」重置。
+- 支持触摸、指针取消与失焦释放；滑块支持键盘。
+- 右上角「中文 / EN」切换完整界面语言，首次默认中文；记住手动选择，切换不重置颜色或物理参数。
+- 鼠标移动时眼睛轻轻跟随，离开页面后平滑回正；触摸设备保持自然视线。
+- 点击或空格：惊讶圆嘴；按住：舒服眯眼；松手：开心笑；换色：俏皮眨眼；闲置时偶尔自然眨眼。
+- 尊重系统「减少动态效果」设置，关闭新增的自动眨眼与视线跟随。
+
+## 实现
+
+- Three.js **0.185.1**，显式 `Renderer` + `WebGPUBackend` + `StandardNodeLibrary`，`getFallback: null`。
+- 没有 WebGL 回退。WebGPU 初始化或设备连接失败会显示明确状态。
+- 固定 **120 Hz** 模态弹簧物理：体积保持的挤压/拉伸、惯性剪切、局部按压、重力和桌面接触。
+- 身体与五官的每个顶点使用同一个连续变形场；五官不以刚体跟随。
+- 表情先在局部空间插值并重新贴合表面，再进入同一物理变形场；单一状态控制器协调表情优先级，没有竞争的定时器。
+- 凝胶使用实体 transmission、折射、吸收色和 clearcoat。工作室环境贴图在启动时用 WebGPU PMREM 烘焙。
+- 116 个实例化气泡；无实时阴影贴图和全屏后处理。DPR 上限 2，持续低帧率时逐级降至 1。
+- FPS 是实际渲染帧统计，不是预置数字。最新浏览器检查、硬件信息、实际渲染性能和截图路径记录在 `artifacts/test-results.json`；此前的设计验证记录见 `artifacts/qa-report.md`。
+
+## 验证与设计证据
+
+```sh
+npm test
+npm run test:browser
+TEST_URL=http://127.0.0.1:4173 npm run test:browser
+```
+
+自动化需要本机安装 Chrome，使用 headless 原生 WebGPU，不启动可见 Chrome 窗口。Codex 内置浏览器用于截图对照与交互调试，两个环境的测量分开记录。
+
+- `reference/target.png`：先生成的目标效果图。
+- `reference/image-prompt.txt`：生成提示词；使用内置 image_gen 工具。
+- `reference/user-slime.png`：用户提供的视觉参考。
+- `reference/design-analysis.md`：目标图的布局分析。
+- `reference/implementation-plan.md`：实现约束、预算和技能工作流。
+- `artifacts/`：实际浏览器截图及测试报告。
+
+参考图不参与运行时渲染，页面中的史莱姆是真实可变形 3D 网格。
+
+## API 参考
+
+- [Three.js WebGPU 手册](https://threejs.org/manual/en/webgpurenderer)
+- [Three.js WebGPURenderer 文档](https://threejs.org/docs/pages/WebGPURenderer.html)
+
+Three.js 默认的 WebGPURenderer 包含自动后备逻辑，本项目直接组合 WebGPUBackend 与 Renderer，从构造层面移除后备路径。

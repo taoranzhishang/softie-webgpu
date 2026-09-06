@@ -1,0 +1,38 @@
+export const messages = {
+  zh: {
+    title: 'softie · 软乎乎。', description: '一团软乎乎的 WebGPU 史莱姆。捏一捏，拖一拖，把今天放轻松。',
+    home: 'softie 首页', tagline: '留一点空间，放轻松', heading: '软乎乎。', intro: '捏一捏，把今天放轻松。',
+    language: '界面语言', chinese: '中文', english: 'English 英文', soundToggle: '音效开关', soundOn: '音效开启', soundOff: '静音',
+    canvas: '互动史莱姆：按住揉捏，拖动拎起，松手回弹。也可以按空格键戳一下。',
+    loading: '让软乎乎醒过来…', waiting: '等待 WebGPU', settings: '随你揉捏', settingsNote: '把心情捏成喜欢的样子',
+    settingsLabel: '史莱姆设置', color: '颜色', strawberry: '草莓史莱姆', mint: '薄荷史莱姆', grape: '葡萄史莱姆', custom: '自定义颜色',
+    strawberryLabel: '草莓史莱姆，粉色', mintLabel: '薄荷史莱姆，青绿色', grapeLabel: '葡萄史莱姆，淡紫色', customLabel: '自定义颜色',
+    stiffness: '软硬', damping: '阻尼', volume: '音量', volumeMute: '静音', volumeMax: '最大', soft: '糯叽叽', springy: '有弹性', wobbly: '晃悠悠', settled: '很乖巧',
+    poke: '戳一下', pokeTitle: '戳一下 · 空格键', reset: '恢复默认',
+    connecting: '连接 WebGPU', connected: 'WebGPU', disconnected: 'WebGPU 未连接', fps: '实时帧率',
+    hold: '按住揉捏', drag: '拖动拎起', release: '松手回弹', footer: '慢一点，也没关系。',
+    gpuUnsupported: '这个浏览器尚未启用 WebGPU。请在支持 WebGPU 的新版浏览器中打开。',
+    nativeRequired: '需要原生 WebGPU 渲染器。', deviceLost: 'WebGPU 设备连接已中断，请刷新页面重新连接。',
+    initFailed: 'WebGPU 启动失败，请刷新页面，或使用支持 WebGPU 的新版浏览器。',
+  },
+  en: {
+    title: 'softie · Soft & squishy.', description: 'A soft little WebGPU slime. Squish, stretch, and let the day feel lighter.',
+    home: 'softie home', tagline: 'A LITTLE ROOM TO PLAY', heading: 'Softie.', intro: 'A little squish. A lighter day.',
+    language: 'Interface language', chinese: '中文 Chinese', english: 'English', soundToggle: 'Sound toggle', soundOn: 'Sound on', soundOff: 'Muted',
+    canvas: 'Interactive slime: hold to squish, drag to lift, and release to bounce. You can also press Space to poke.',
+    loading: 'Waking softie up…', waiting: 'Waiting for WebGPU', settings: 'Make it yours', settingsNote: 'A LITTLE MOOD MAKEOVER',
+    settingsLabel: 'Slime settings', color: 'Color', strawberry: 'Strawberry slime', mint: 'Mint slime', grape: 'Grape slime', custom: 'Custom color',
+    strawberryLabel: 'Strawberry slime, pink', mintLabel: 'Mint slime, mint green', grapeLabel: 'Grape slime, lavender', customLabel: 'Custom color',
+    stiffness: 'Firmness', damping: 'Damping', volume: 'Volume', volumeMute: 'Mute', volumeMax: 'Max', soft: 'Squishy', springy: 'Springy', wobbly: 'Wobbly', settled: 'Settled',
+    poke: 'Poke me', pokeTitle: 'Poke me · Space', reset: 'Reset',
+    connecting: 'Connecting WebGPU', connected: 'WebGPU', disconnected: 'WebGPU disconnected', fps: 'Live frame rate',
+    hold: 'Hold to squish', drag: 'Drag to lift', release: 'Release to bounce', footer: 'Take your time.',
+    gpuUnsupported: 'WebGPU is not enabled in this browser. Please open this page in a recent browser that supports WebGPU.',
+    nativeRequired: 'A native WebGPU renderer is required.', deviceLost: 'The WebGPU device disconnected. Refresh the page to reconnect.',
+    initFailed: 'WebGPU did not start. Refresh the page or use a recent browser that supports WebGPU.',
+  },
+};
+
+export function translate(language, key) {
+  return messages[language]?.[key] ?? messages.zh[key];
+}
