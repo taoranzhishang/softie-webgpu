@@ -9,12 +9,23 @@ import './style.css';
 const physics = new JellyPhysics();
 let slime, studio, ready = false;
 let isDizzyPending = false;
+let lastSnoreTime = 0;
+let lastActivity = performance.now();
+const registerActivity = () => {
+  lastActivity = performance.now();
+  if (slime?.faceMotion.isSleeping) {
+    slime.faceMotion.wakeUp(false);
+  }
+};
+
 physics.onLand = impact => {
   if (!ready) return;
   if (isDizzyPending) {
     isDizzyPending = false;
     sound.playDizzyLand(impact);
     slime?.faceMotion.react('dizzy');
+  } else if (slime?.faceMotion.anger > 0.48) {
+    sound.playAngryLand(impact);
   } else {
     sound.playLand(impact);
   }
@@ -25,9 +36,21 @@ physics.onEntryComplete = () => {
 };
 function poke() {
   if (!ready) return;
+  lastActivity = performance.now();
+  if (slime?.faceMotion.isSleeping) {
+    slime.faceMotion.wakeUp(true);
+    sound.playStartle();
+    physics.poke();
+    slime.faceMotion.addAnger(0.14);
+    return;
+  }
   physics.poke();
-  slime.faceMotion.react('surprised');
-  sound.playPoke();
+  slime?.faceMotion.addAnger(0.18);
+  if (slime?.faceMotion.anger > 0.6) {
+    sound.playAngryPoke(slime.faceMotion.anger);
+  } else {
+    sound.playPoke();
+  }
 }
 const ui = setupUI({
   onColor: ({ color }) => { slime?.setColor(color); studio?.setColor(color); slime?.faceMotion.react('wink'); },
@@ -40,6 +63,7 @@ const ui = setupUI({
     slime?.setColor('#f17fa9');
     studio?.setColor('#f17fa9');
     slime?.faceMotion.reset();
+    ui.setMood('chill');
   },
   onWakeup: () => {
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -201,6 +225,7 @@ async function start() {
         dizzyUntil = now + 650;
         isDizzyPending = true;
         dizzyPendingUntil = now + 2000;
+        slime?.faceMotion.addAnger(0.42);
         sound.playDizzy();
         shakeWindowStart = now;
         shakeStartX = event.clientX;
@@ -279,15 +304,13 @@ async function start() {
   window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
   window.addEventListener('keydown', unlockAudio, { once: true, passive: true });
 
-  let lastActivity = performance.now();
-  const registerActivity = () => { lastActivity = performance.now(); };
   window.addEventListener('pointermove', registerActivity, { passive: true });
   window.addEventListener('pointerdown', registerActivity, { passive: true });
   window.addEventListener('keydown', registerActivity, { passive: true });
 
   const ambientInterval = setInterval(() => {
     if (!ready || document.hidden || pointerId !== null) return;
-    if (performance.now() - lastActivity > 12000) {
+    if (performance.now() - lastActivity > 12000 && !slime?.faceMotion.isSleeping) {
       sound.playAmbientBubble();
       lastActivity = performance.now() - 3000;
     }
@@ -306,9 +329,22 @@ async function start() {
     if (document.hidden) return;
     const dt = Math.min(Math.max(elapsed / 1000, 0), 1 / 15);
     time += dt;
+
+    // Sleep mode when inactive for 8.5 seconds
+    if (pointerId === null && !slime.faceMotion.isSleeping && now - lastActivity > 8500 && slime.faceMotion.anger < 0.25) {
+      slime.faceMotion.fallAsleep();
+    }
+
+    // Gentle rhythmic snoring when sleeping
+    if (slime.faceMotion.isSleeping && now - lastSnoreTime > 2400) {
+      lastSnoreTime = now;
+      sound.playSnore();
+    }
+
     physics.update(dt);
     slime.update(time);
     studio.update(physics.position);
+    ui.setMood(slime.faceMotion.mood);
     renderer.render(scene, camera);
     frames++; windowFrames++;
     frameTimes.push(elapsed);

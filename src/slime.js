@@ -251,13 +251,58 @@ export function makeSlime(physics, environment) {
   }
   group.add(dizzyStarsGroup);
 
+  // 3D Anger Cross: Pop cartoon vein icon jumping when angry
+  const hBar = new THREE.BoxGeometry(0.075, 0.018, 0.016);
+  const vBar = new THREE.BoxGeometry(0.018, 0.075, 0.016);
+  const angerCrossGeom = remember(mergeGeometries([hBar, vBar]));
+  hBar.dispose(); vBar.dispose();
+  const angerMaterial = new THREE.MeshStandardNodeMaterial({
+    color: '#ff203a',
+    emissive: '#ff0022',
+    emissiveIntensity: 0.65,
+    roughness: 0.22,
+    metalness: 0.2,
+    transparent: true,
+    depthWrite: false,
+  });
+  const angerCrossMesh = new THREE.Mesh(angerCrossGeom, angerMaterial);
+  angerCrossMesh.name = 'mood-anger-cross';
+  angerCrossMesh.visible = false;
+  angerCrossMesh.frustumCulled = false;
+  group.add(angerCrossMesh);
+
+  // 3D Sleep Bubble: Translucent bubble expanding & contracting with breathing rhythm
+  const sleepBubbleGeom = new THREE.SphereGeometry(0.085, 24, 16);
+  const sleepBubbleMat = new THREE.MeshPhysicalNodeMaterial({
+    color: '#cbe7f8',
+    transmission: 0.92,
+    roughness: 0.06,
+    ior: 1.25,
+    transparent: true,
+    opacity: 0.88,
+    depthWrite: false,
+  });
+  const sleepBubbleMesh = new THREE.Mesh(sleepBubbleGeom, sleepBubbleMat);
+  sleepBubbleMesh.name = 'mood-sleep-bubble';
+  sleepBubbleMesh.visible = false;
+  sleepBubbleMesh.frustumCulled = false;
+  group.add(sleepBubbleMesh);
+
   const p = { x: 0, y: 0, z: 0 };
   const crownP = { x: 0, y: 0, z: 0 };
+  const moodP = { x: 0, y: 0, z: 0 };
   const matrix = new THREE.Matrix4();
   const geometries = [body.geometry, face.geometry];
+  let baseColorHex = '#f17fa9';
+  let baseGlassTint = glassTint(baseColorHex);
+  const rageGlassTint = glassTint('#ff1e42');
+
   return {
     group, body, face, bubbles, gel, faceMotion, dizzyStars: dizzyStarsGroup,
+    angerCross: angerCrossMesh, sleepBubble: sleepBubbleMesh,
     setColor(color) {
+      baseColorHex = color;
+      baseGlassTint = glassTint(color);
       const c = new THREE.Color(color);
       const isBlack = Math.max(c.r, c.g, c.b) <= 0.008;
       if (isBlack) {
@@ -273,13 +318,27 @@ export function makeSlime(physics, environment) {
         face.material.clearcoatRoughness = 0.08;
         face.material.envMapIntensity = 0.45;
       }
-      gel.attenuationColor.copy(glassTint(color));
+      gel.attenuationColor.copy(baseGlassTint);
       bubbleMaterial.color.set(color).lerp(new THREE.Color('white'), 0.65);
     },
     update(time) {
       group.position.copy(physics.position);
       const expression = faceMotion.update(time);
+
+      // Dynamic heat warning tint (thermal anger effect)
+      const angerLevel = expression.angerLevel ?? 0;
+      if (angerLevel > 0.02) {
+        gel.attenuationColor.copy(baseGlassTint).lerp(rageGlassTint, angerLevel * 0.82);
+      } else {
+        gel.attenuationColor.copy(baseGlassTint);
+      }
+
       const restFace = faceGeometry.userData.rest;
+      const angry = expression.angry ?? 0;
+      const annoyed = expression.annoyed ?? 0;
+      const sleepy = expression.sleepy ?? 0;
+      const startle = expression.startle ?? 0;
+
       for (let i = 0; i < faceDepth.length; i++) {
         const n = i * 3;
         let x = restFace[n], y = restFace[n + 1], depth = faceDepth[i];
@@ -293,21 +352,43 @@ export function makeSlime(physics, environment) {
           const wobbleScaleX = 1 + Math.sin(spinAngle * 2 + (left ? 0 : Math.PI)) * 0.28 * dizzy;
           const wobbleScaleY = 1 - Math.sin(spinAngle * 2 + (left ? 0 : Math.PI)) * 0.28 * dizzy;
 
-          const closed = Math.max(expression.blink, (1 - dizzy) * expression.squish * 0.9,
-            expression.happy * 0.7, left ? expression.wink * 0.94 : 0);
+          const closed = Math.max(
+            expression.blink,
+            sleepy * 0.92,
+            (1 - dizzy) * expression.squish * 0.9,
+            expression.happy * 0.7,
+            left ? expression.wink * 0.94 : 0,
+            annoyed * (left ? 0.32 : 0.06)
+          );
+
           const localX = (x - cx) * wobbleScaleX;
-          x = cx + eyeOffsetX + localX * (1 + expression.surprised * 0.12) + expression.gazeX * 0.05;
-          y = 1.2 + eyeOffsetY + (y - 1.2) * (1 - closed) * wobbleScaleY * (1 + expression.surprised * 0.14)
+          const browTilt = (left ? localX : -localX) * 0.38 * angry;
+          const annoyedLift = (left ? 0.022 : -0.008) * annoyed;
+          const sleepyDrop = -0.018 * sleepy;
+
+          x = cx + eyeOffsetX + localX * (1 + expression.surprised * 0.12 + startle * 0.35) + expression.gazeX * 0.05;
+          y = 1.2 + eyeOffsetY + browTilt + annoyedLift + sleepyDrop
+            + (y - 1.2) * (1 - closed) * wobbleScaleY * (1 + expression.surprised * 0.14 + startle * 0.38)
             + closed * 0.025 * (1 - (localX / 0.128) ** 2) + expression.gazeY * 0.028;
         } else {
           const m = (i - eyeVertices * 2) * 3;
-          const open = expression.surprised;
+          const open = Math.max(expression.surprised, startle * 1.25);
           const dizzy = expression.dizzy ?? 0;
           x += (mouthTarget[m] - x) * open;
           y += (mouthTarget[m + 1] - y) * open;
           depth += (mouthDepth[m / 3] - depth) * open;
-          x *= 1 + expression.happy * 0.25 + expression.squish * 0.1;
+
+          x *= 1 + expression.happy * 0.25 + expression.squish * 0.1 + startle * 0.22;
           y = 1.111 + (y - 1.111) * (1 + expression.happy * 0.2) + expression.wink * x * 0.16;
+
+          // Grumpy inverted mouth curvature when angry
+          y -= (x * x) * 2.8 * angry;
+          // Subtly slanted mouth when annoyed
+          x += annoyed * 0.015;
+          y -= annoyed * 0.012;
+          // Downward slack when sleepy
+          y -= sleepy * 0.022;
+
           y += Math.sin(x * 42 + time * 20) * 0.024 * dizzy - 0.015 * dizzy;
         }
         posed[n] = x; posed[n + 1] = y; posed[n + 2] = frontAt(x, y) + depth;
@@ -323,21 +404,22 @@ export function makeSlime(physics, environment) {
         positions.needsUpdate = true;
         geometry.computeVertexNormals();
       }
+
+      // Bubbles bubble faster as temperature/anger rises
+      const angerSpeedMult = 1 + angerLevel * 2.2;
       for (let i = 0; i < count; i++) {
         const b = bubbleSeeds[i];
-        const speed = 0.026 + b.size * 0.65 + b.phase * 0.002;
+        const speed = (0.026 + b.size * 0.65 + b.phase * 0.002) * angerSpeedMult;
         const progress = ((b.y - 0.19 + time * speed) % 1.96) / 1.96;
         const y = 0.19 + progress * 1.96;
         const radius = radiusAt(y);
         const drift = time * (0.5 + b.phase * 0.06);
         let x = b.x + Math.sin(drift + b.phase) * 0.045;
         let z = b.z + Math.cos(drift * 0.73 + b.phase) * 0.035;
-        // Follow the narrowing volume near the crown, leaving room for the whole bubble.
         const inset = 1 - b.size * 2.8 / (DEPTH * radius);
         const fit = Math.min(1, inset / Math.hypot(x, z));
         x *= WIDTH * radius * fit;
         z *= DEPTH * radius * fit;
-        // Shrink out/in at the ends so the upward loop has no visible teleport.
         const fade = THREE.MathUtils.smoothstep(progress, 0, 0.08)
           * (1 - THREE.MathUtils.smoothstep(progress, 0.9, 1));
         const size = b.size * Math.max(0.001, fade);
@@ -354,10 +436,8 @@ export function makeSlime(physics, environment) {
         if (dizzyStarsGroup.visible) dizzyStarsGroup.visible = false;
       } else {
         dizzyStarsGroup.visible = true;
-        // Anchor to the dynamically deformed crown apex (tuft) of the jelly
         physics.deform(0, 2.38, 0, crownP);
         dizzyStarsGroup.position.set(crownP.x, crownP.y + 0.30, crownP.z);
-        // Tilted halo plane for cartoon 3D perspective
         dizzyStarsGroup.rotation.x = 0.32 + Math.sin(time * 3.5) * 0.05;
         dizzyStarsGroup.rotation.z = Math.cos(time * 3.0) * 0.05;
 
@@ -368,14 +448,12 @@ export function makeSlime(physics, environment) {
         for (let i = 0; i < STAR_COUNT; i++) {
           const star = stars[i];
           const orbitAngle = time * 6.6 + (i * Math.PI * 2) / STAR_COUNT;
-          // Undulating wave pattern along the circular halo
           const wobbleY = Math.sin(time * 7.5 + i * 1.25) * 0.042;
           star.position.set(
             Math.cos(orbitAngle) * orbitRadius,
             wobbleY,
             Math.sin(orbitAngle) * orbitRadius
           );
-          // Star self-rotation and sparkling micro-twinkle
           star.rotation.y = time * 8.5 + i * 1.8;
           star.rotation.z = time * 6.0 + i * 1.2;
           star.rotation.x = Math.sin(time * 6.5 + i) * 0.5;
@@ -383,11 +461,41 @@ export function makeSlime(physics, environment) {
           star.scale.setScalar(baseScale * twinkle);
         }
       }
+
+      // Update 3D Anger Cross popping near right temple
+      const angerEffect = Math.max(angry, angerLevel);
+      if (angerEffect <= 0.15) {
+        if (angerCrossMesh.visible) angerCrossMesh.visible = false;
+      } else {
+        angerCrossMesh.visible = true;
+        physics.deform(0.52, 1.85, 0.65, moodP);
+        angerCrossMesh.position.set(moodP.x, moodP.y, moodP.z);
+        const pulse = 1 + Math.sin(time * 18) * 0.22;
+        const crossScale = Math.min(1.2, angerEffect * 1.4) * pulse;
+        angerCrossMesh.scale.setScalar(crossScale);
+        angerCrossMesh.rotation.z = 0.25 + Math.sin(time * 20) * 0.15;
+        angerMaterial.opacity = Math.min(1, angerEffect * 1.6);
+      }
+
+      // Update 3D Sleep Bubble expanding & contracting with breathing rhythm
+      if (sleepy <= 0.05) {
+        if (sleepBubbleMesh.visible) sleepBubbleMesh.visible = false;
+      } else {
+        sleepBubbleMesh.visible = true;
+        physics.deform(0.18, 1.10, frontAt(0.18, 1.10) + 0.09, moodP);
+        const breath = (Math.sin(time * 2.6) + 1) * 0.5;
+        const bScale = sleepy * (0.35 + breath * 0.85);
+        sleepBubbleMesh.scale.setScalar(bScale);
+        sleepBubbleMesh.position.set(moodP.x + breath * 0.03, moodP.y + breath * 0.05, moodP.z);
+        sleepBubbleMat.opacity = Math.min(0.85, sleepy * 1.2);
+      }
     },
     dispose() {
       geometries.forEach(g => g.dispose());
       gel.dispose(); rearMaterial.dispose(); black.dispose(); bubbleGeometry.dispose(); bubbleMaterial.dispose();
       starGeometry.dispose(); starMaterial.dispose();
+      angerCrossGeom.dispose(); angerMaterial.dispose();
+      sleepBubbleGeom.dispose(); sleepBubbleMat.dispose();
     },
   };
 }

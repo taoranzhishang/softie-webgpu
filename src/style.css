@@ -229,6 +229,85 @@ input {
   z-index: 1;
   pointer-events: none;
 }
+.title-with-mood {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.mood-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: 0.04em;
+  color: #3b3d39;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  vertical-align: middle;
+}
+.mood-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34c759;
+  box-shadow: 0 0 8px rgba(52, 199, 89, 0.6);
+  transition: all 0.3s ease;
+}
+.mood-badge[data-mood="chill"] {
+  color: #274029;
+  border-color: rgba(52, 199, 89, 0.25);
+}
+.mood-badge[data-mood="chill"] .mood-dot {
+  background: #34c759;
+  box-shadow: 0 0 8px rgba(52, 199, 89, 0.7);
+}
+.mood-badge[data-mood="annoyed"] {
+  color: #704808;
+  border-color: rgba(255, 149, 0, 0.3);
+  background: rgba(255, 248, 235, 0.85);
+}
+.mood-badge[data-mood="annoyed"] .mood-dot {
+  background: #ff9500;
+  box-shadow: 0 0 8px rgba(255, 149, 0, 0.8);
+}
+.mood-badge[data-mood="rage"] {
+  color: #fff;
+  background: #ff2a44;
+  border-color: #e01b33;
+  box-shadow: 0 4px 16px rgba(255, 42, 68, 0.35);
+  animation: mood-shake 0.4s infinite ease-in-out;
+}
+.mood-badge[data-mood="rage"] .mood-dot {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.9);
+}
+.mood-badge[data-mood="sleepy"] {
+  color: #22435f;
+  background: rgba(235, 246, 255, 0.85);
+  border-color: rgba(0, 122, 255, 0.25);
+}
+.mood-badge[data-mood="sleepy"] .mood-dot {
+  background: #5ac8fa;
+  box-shadow: 0 0 8px rgba(90, 200, 250, 0.7);
+  animation: mood-sleep-pulse 2.2s infinite ease-in-out;
+}
+@keyframes mood-shake {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px) scale(1.03); }
+}
+@keyframes mood-sleep-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
 h1 {
   margin: 0;
   font-size: clamp(80px, 7.3vw, 112px);

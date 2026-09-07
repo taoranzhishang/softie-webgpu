@@ -14,6 +14,8 @@ export const messages = {
     gpuUnsupported: '这个浏览器尚未启用 WebGPU。请在支持 WebGPU 的新版浏览器中打开。',
     nativeRequired: '需要原生 WebGPU 渲染器。', deviceLost: 'WebGPU 设备连接已中断，请刷新页面重新连接。',
     initFailed: 'WebGPU 启动失败，请刷新页面，或使用支持 WebGPU 的新版浏览器。',
+    moodChill: '佛系放空', moodAnnoyed: '有点烦躁', moodRage: '暴怒红温！', moodSleepy: '摸鱼打盹中…',
+    moodLabel: '心情状态', workerQuote: '在工位上，我是一团没有骨头的果冻。', pokeAngry: '别戳了！',
   },
   en: {
     title: 'softie · Soft & squishy.', description: 'A soft little WebGPU slime. Squish, stretch, and let the day feel lighter.',
@@ -30,6 +32,8 @@ export const messages = {
     gpuUnsupported: 'WebGPU is not enabled in this browser. Please open this page in a recent browser that supports WebGPU.',
     nativeRequired: 'A native WebGPU renderer is required.', deviceLost: 'The WebGPU device disconnected. Refresh the page to reconnect.',
     initFailed: 'WebGPU did not start. Refresh the page or use a recent browser that supports WebGPU.',
+    moodChill: 'Chill & Cozy', moodAnnoyed: 'Slightly Annoyed', moodRage: 'Raging Hot!', moodSleepy: 'Slacking & Napping…',
+    moodLabel: 'Current Mood', workerQuote: 'At work, I am just a boneless jelly.', pokeAngry: 'Stop poking!',
   },
 };
 

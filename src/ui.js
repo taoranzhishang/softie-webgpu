@@ -14,12 +14,25 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
   const swatches = [...document.querySelectorAll('[data-color]')];
   const colorName = document.querySelector('#color-name');
   let language = 'zh', selectedColor = DEFAULTS.color, rendererState = 'pending', errorKey = 'initFailed';
+  let currentMood = 'chill';
+  const moodBadge = document.querySelector('#mood-badge');
+  const moodText = document.querySelector('#mood-text');
+  const moodKeys = { chill: 'moodChill', annoyed: 'moodAnnoyed', rage: 'moodRage', sleepy: 'moodSleepy' };
+
   try { if (localStorage.getItem('softie-language') === 'en') language = 'en'; } catch { /* Storage may be disabled. */ }
   const t = key => translate(language, key);
 
   function renderStatus() {
     statusText.textContent = t(rendererState === 'ready' ? 'connected' : rendererState === 'error' ? 'disconnected' : 'connecting');
     document.querySelector('#error-message').textContent = t(errorKey) ?? t('initFailed');
+  }
+
+  function renderMood() {
+    if (!moodBadge || !moodText) return;
+    moodBadge.dataset.mood = currentMood;
+    const key = moodKeys[currentMood] ?? 'moodChill';
+    moodText.textContent = t(key);
+    moodText.setAttribute('data-i18n', key);
   }
 
   function setLanguage(value) {
@@ -40,6 +53,7 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
     }
     selectColor(selectedColor);
     renderStatus();
+    renderMood();
   }
 
   const PRESET_COLORS = ['#f17fa9', '#a5e0cd', '#c8afec'];
@@ -268,6 +282,11 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
         stage.setAttribute('aria-busy', String(state === 'pending'));
       }
       unsupported.hidden = true;
+    },
+    setMood(mood) {
+      if (currentMood === mood) return;
+      currentMood = mood;
+      renderMood();
     },
     setFps(fps) {
       fpsText.textContent = Number.isFinite(fps) ? `${Math.round(fps)} FPS` : '— FPS';
