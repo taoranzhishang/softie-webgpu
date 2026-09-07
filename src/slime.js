@@ -99,116 +99,257 @@ function makeStarGeometry(outerRadius = 0.052, innerRadius = 0.023, thickness = 
   return geometry;
 }
 
-// Accessory 1: Worker ID Card Badge (Black lanyard + ID card)
+// Accessory 1: Worker ID Card Badge (Clip-on chest badge + AI-generated cute pass)
 function makeBadge() {
   const group = new THREE.Group();
   group.name = 'accessory-badge';
 
-  const leftPoints = [
-    new THREE.Vector3(-0.32, 1.45, frontAt(-0.32, 1.45) + 0.022),
-    new THREE.Vector3(-0.16, 1.15, frontAt(-0.16, 1.15) + 0.028),
-    new THREE.Vector3(0, 0.94, frontAt(0, 0.94) + 0.038),
-  ];
-  const rightPoints = [
-    new THREE.Vector3(0.32, 1.45, frontAt(0.32, 1.45) + 0.022),
-    new THREE.Vector3(0.16, 1.15, frontAt(0.16, 1.15) + 0.028),
-    new THREE.Vector3(0, 0.94, frontAt(0, 0.94) + 0.038),
-  ];
-  const leftTube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(leftPoints), 16, 0.008, 8, false);
-  const rightTube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rightPoints), 16, 0.008, 8, false);
+  const cx = 0.44;
+  const cy = 0.65;
+  const cz = frontAt(cx, cy) + 0.040;
 
-  const cardHolderGeom = new THREE.BoxGeometry(0.22, 0.28, 0.015);
-  cardHolderGeom.translate(0, 0.74, frontAt(0, 0.74) + 0.038);
+  // Natural slant and tilt tangent to curved chest, giving breathing room to eyes
+  const transform = new THREE.Matrix4();
+  const rot = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.06, 0.26, 0.22));
+  const pos = new THREE.Matrix4().makeTranslation(cx, cy, cz);
+  transform.multiplyMatrices(pos, rot);
 
-  const barcodeGeom = new THREE.BoxGeometry(0.12, 0.022, 0.018);
-  barcodeGeom.translate(0, 0.67, frontAt(0, 0.67) + 0.040);
+  // 1. Scaled metallic crocodile clip at top
+  const clipBody = new THREE.BoxGeometry(0.058, 0.070, 0.026);
+  clipBody.translate(0, 0.225, 0.008);
+  const clipPin = new THREE.CylinderGeometry(0.009, 0.009, 0.060, 12);
+  clipPin.rotateZ(Math.PI / 2);
+  clipPin.translate(0, 0.238, 0.015);
+  const strap = new THREE.BoxGeometry(0.028, 0.048, 0.010);
+  strap.translate(0, 0.200, 0.005);
+  const clipGeomRaw = mergeGeometries([clipBody, clipPin, strap]);
+  clipBody.dispose(); clipPin.dispose(); strap.dispose();
+  clipGeomRaw.applyMatrix4(transform);
+  const clipGeom = remember(clipGeomRaw);
 
-  const blackGeom = remember(mergeGeometries([leftTube, rightTube, cardHolderGeom, barcodeGeom]));
-  leftTube.dispose(); rightTube.dispose(); cardHolderGeom.dispose(); barcodeGeom.dispose();
+  // 2. Scaled acrylic card holder frame (~1.3x size for clear readability)
+  const holderGeomRaw = new THREE.BoxGeometry(0.290, 0.435, 0.012);
+  holderGeomRaw.applyMatrix4(transform);
+  const holderGeom = remember(holderGeomRaw);
 
-  const cardPaperGeom = new THREE.BoxGeometry(0.18, 0.22, 0.016);
-  cardPaperGeom.translate(0, 0.74, frontAt(0, 0.74) + 0.039);
-  const whiteGeom = remember(cardPaperGeom);
+  // 3. Card face with texture
+  const cardGeomRaw = new THREE.PlaneGeometry(0.265, 0.410);
+  const cardTransform = new THREE.Matrix4();
+  const cardOffset = new THREE.Matrix4().makeTranslation(0, 0, 0.008);
+  cardTransform.multiplyMatrices(transform, cardOffset);
+  cardGeomRaw.applyMatrix4(cardTransform);
+  const cardGeom = remember(cardGeomRaw);
 
-  const blackMat = new THREE.MeshStandardNodeMaterial({
-    color: '#1a1819', roughness: 0.35, metalness: 0.15,
+  // All badge materials use transparent: true & depthWrite: false so they render
+  // in the post-transmission composite pass. This completely prevents the glass body
+  // from capturing and refractively projecting an inverted duplicate inside the jelly belly!
+  const clipMat = new THREE.MeshStandardNodeMaterial({
+    color: '#e2e8f0', roughness: 0.16, metalness: 0.88,
+    transparent: true, depthWrite: false,
   });
-  const whiteMat = new THREE.MeshStandardNodeMaterial({
-    color: '#edf1f5', roughness: 0.45, metalness: 0.05,
+  const holderMat = new THREE.MeshStandardNodeMaterial({
+    color: '#1a2233', roughness: 0.35, metalness: 0.12,
+    transparent: true, depthWrite: false,
   });
 
-  const holderMesh = new THREE.Mesh(blackGeom, blackMat);
-  const paperMesh = new THREE.Mesh(whiteGeom, whiteMat);
-  holderMesh.renderOrder = 3;
-  paperMesh.renderOrder = 3;
-  holderMesh.frustumCulled = false;
-  paperMesh.frustumCulled = false;
-
-  group.add(holderMesh, paperMesh);
-  return { group, meshes: [holderMesh, paperMesh], materials: [blackMat, whiteMat], geometries: [blackGeom, whiteGeom] };
-}
-
-// Accessory 2: Dark Circles (Overworked tired eyes)
-function makeDarkCircles() {
-  const group = new THREE.Group();
-  group.name = 'accessory-dark-circles';
-  const circles = [];
-  for (const cx of [-0.41, 0.41]) {
-    const geom = new THREE.SphereGeometry(1, 24, 16);
-    const p = geom.attributes.position;
-    for (let i = 0; i < p.count; i++) {
-      const x = cx + p.getX(i) * 0.15;
-      const y = 1.05 + p.getY(i) * 0.048;
-      p.setXYZ(i, x, y, frontAt(x, y) + 0.016 + p.getZ(i) * 0.02);
+  const isBrowser = typeof document !== 'undefined';
+  let cardMat;
+  if (isBrowser) {
+    // Generate immediate high-res Canvas texture fallback
+    const canvas = document.createElement('canvas');
+    canvas.width = 256; canvas.height = 420;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // Background & header
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 256, 420);
+      ctx.fillStyle = '#1c283f';
+      ctx.fillRect(0, 0, 256, 120);
+      ctx.fillStyle = '#67e8f9';
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('SOFTIE CORP', 128, 70);
+      // Mini slime avatar circle
+      ctx.beginPath();
+      ctx.arc(128, 190, 48, 0, Math.PI * 2);
+      ctx.fillStyle = '#a5f3fc';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#1c283f';
+      ctx.stroke();
+      // Eyes & smile
+      ctx.fillStyle = '#1c283f';
+      ctx.beginPath(); ctx.arc(114, 185, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(142, 185, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(128, 195, 12, 0.2, Math.PI - 0.2); ctx.stroke();
+      // Text info
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText('SOFTIE', 128, 275);
+      ctx.fillStyle = '#64748b';
+      ctx.font = '14px sans-serif';
+      ctx.fillText('CHIEF CHILL OFFICER', 128, 305);
+      // Barcode
+      ctx.fillStyle = '#1e293b';
+      for (let i = 40; i < 216; i += 7) {
+        ctx.fillRect(i, 340, (i % 3 === 0 ? 4 : 2), 40);
+      }
     }
-    geom.computeVertexNormals();
-    circles.push(geom);
+    const canvasTex = new THREE.CanvasTexture(canvas);
+    cardMat = new THREE.MeshStandardNodeMaterial({
+      map: canvasTex, roughness: 0.4, metalness: 0.05,
+      transparent: true, depthWrite: false,
+    });
+    // Upgrade to AI-generated card artwork when loaded
+    const loader = new THREE.TextureLoader();
+    loader.load('/textures/worker_badge.png', (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      cardMat.map = tex;
+      cardMat.needsUpdate = true;
+    });
+  } else {
+    cardMat = new THREE.MeshStandardNodeMaterial({
+      color: '#edf1f5', roughness: 0.45, metalness: 0.05,
+      transparent: true, depthWrite: false,
+    });
   }
-  const mergedGeom = remember(mergeGeometries(circles));
-  circles.forEach(g => g.dispose());
 
-  const mat = new THREE.MeshBasicNodeMaterial({
-    color: '#2e2336', transparent: true, opacity: 0.65, depthWrite: false,
-  });
-  const mesh = new THREE.Mesh(mergedGeom, mat);
-  mesh.renderOrder = 3;
-  mesh.frustumCulled = false;
-  group.add(mesh);
-  return { group, meshes: [mesh], materials: [mat], geometries: [mergedGeom] };
+  const holderMesh = new THREE.Mesh(holderGeom, holderMat);
+  const cardMesh = new THREE.Mesh(cardGeom, cardMat);
+  const clipMesh = new THREE.Mesh(clipGeom, clipMat);
+
+  // Layered renderOrder ensures strict back-to-front sorting without z-fighting
+  holderMesh.renderOrder = 3;
+  cardMesh.renderOrder = 4;
+  clipMesh.renderOrder = 5;
+
+  for (const m of [holderMesh, cardMesh, clipMesh]) {
+    m.frustumCulled = false;
+  }
+
+  group.add(holderMesh, cardMesh, clipMesh);
+  return {
+    group,
+    meshes: [holderMesh, cardMesh, clipMesh],
+    materials: [holderMat, cardMat, clipMat],
+    geometries: [holderGeom, cardGeom, clipGeom],
+  };
 }
 
-// Accessory 3: Band-aid (War-damaged resilient worker)
+// Accessory 2: Iced Americano Coffee (Die-cut direct sticker attached to body)
+function makeCoffee() {
+  const group = new THREE.Group();
+  group.name = 'accessory-coffee';
+
+  const cx = -0.42;
+  const cy = 0.62;
+  const cz = frontAt(cx, cy) + 0.024;
+
+  const transform = new THREE.Matrix4();
+  const rot = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.04, -0.22, -0.10));
+  const pos = new THREE.Matrix4().makeTranslation(cx, cy, cz);
+  transform.multiplyMatrices(pos, rot);
+
+  // Iced Coffee Cutout Graphic (Aspect ratio of iced_coffee.png is ~0.593)
+  const cardW = 0.28;
+  const cardH = cardW / 0.593;
+  const cardGeomRaw = new THREE.PlaneGeometry(cardW, cardH, 4, 4);
+  cardGeomRaw.applyMatrix4(transform);
+  const cardGeom = remember(cardGeomRaw);
+
+  const isBrowser = typeof document !== 'undefined';
+  let coffeeMat;
+  if (isBrowser) {
+    const loader = new THREE.TextureLoader();
+    const coffeeTex = loader.load('/textures/iced_coffee.png');
+    coffeeTex.colorSpace = THREE.SRGBColorSpace;
+    coffeeMat = new THREE.MeshStandardNodeMaterial({
+      map: coffeeTex,
+      transparent: true,
+      alphaTest: 0.05,
+      roughness: 0.35,
+      metalness: 0.02,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+  } else {
+    coffeeMat = new THREE.MeshStandardNodeMaterial({
+      color: '#2a170b', roughness: 0.3, metalness: 0.05,
+      transparent: true, depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+  }
+
+  const coffeeMesh = new THREE.Mesh(cardGeom, coffeeMat);
+  coffeeMesh.renderOrder = 4;
+  coffeeMesh.frustumCulled = false;
+
+  group.add(coffeeMesh);
+  return {
+    group,
+    meshes: [coffeeMesh],
+    materials: [coffeeMat],
+    geometries: [cardGeom],
+  };
+}
+
+// Accessory 3: Band-aid (War-damaged resilient worker, AI-illustrated plaster directly applied)
 function makeBandaid() {
   const group = new THREE.Group();
   group.name = 'accessory-bandaid';
 
-  const tapeGeom = new THREE.BoxGeometry(0.25, 0.082, 0.012);
-  tapeGeom.rotateZ(0.48);
-  tapeGeom.translate(-0.36, 1.46, frontAt(-0.36, 1.46) + 0.028);
+  const cx = -0.36;
+  const cy = 1.46;
+  const cz = frontAt(cx, cy) + 0.022;
 
-  const padGeom = new THREE.BoxGeometry(0.08, 0.07, 0.016);
-  padGeom.rotateZ(0.48);
-  padGeom.translate(-0.36, 1.46, frontAt(-0.36, 1.46) + 0.030);
+  const transform = new THREE.Matrix4();
+  const rot = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.04, -0.22, 0.48));
+  const pos = new THREE.Matrix4().makeTranslation(cx, cy, cz);
+  transform.multiplyMatrices(pos, rot);
 
-  const tapeMeshGeom = remember(tapeGeom);
-  const padMeshGeom = remember(padGeom);
+  // Band-aid aspect ratio is 1257 / 485 ≈ 2.59
+  const bandW = 0.31;
+  const bandH = bandW / 2.59;
 
-  const tapeMat = new THREE.MeshStandardNodeMaterial({
-    color: '#cca685', roughness: 0.72, metalness: 0.0,
-  });
-  const padMat = new THREE.MeshStandardNodeMaterial({
-    color: '#f8f4f0', roughness: 0.55, metalness: 0.0,
-  });
+  // Front texture plane with high-res medical plaster art (no rectangular box background)
+  const frontGeomRaw = new THREE.PlaneGeometry(bandW, bandH, 4, 2);
+  frontGeomRaw.applyMatrix4(transform);
+  const frontGeom = remember(frontGeomRaw);
 
-  const tapeMesh = new THREE.Mesh(tapeMeshGeom, tapeMat);
-  const padMesh = new THREE.Mesh(padMeshGeom, padMat);
-  tapeMesh.renderOrder = 3;
-  padMesh.renderOrder = 3;
-  tapeMesh.frustumCulled = false;
-  padMesh.frustumCulled = false;
+  const isBrowser = typeof document !== 'undefined';
+  let frontMat;
+  if (isBrowser) {
+    const loader = new THREE.TextureLoader();
+    const bandaidTex = loader.load('/textures/bandaid.png');
+    bandaidTex.colorSpace = THREE.SRGBColorSpace;
+    frontMat = new THREE.MeshStandardNodeMaterial({
+      map: bandaidTex,
+      transparent: true,
+      alphaTest: 0.05,
+      roughness: 0.55,
+      metalness: 0.02,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+  } else {
+    frontMat = new THREE.MeshStandardNodeMaterial({
+      color: '#f8f4f0', roughness: 0.55, metalness: 0.0,
+      transparent: true, depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+  }
 
-  group.add(tapeMesh, padMesh);
-  return { group, meshes: [tapeMesh, padMesh], materials: [tapeMat, padMat], geometries: [tapeMeshGeom, padMeshGeom] };
+  const frontMesh = new THREE.Mesh(frontGeom, frontMat);
+  frontMesh.renderOrder = 4;
+  frontMesh.frustumCulled = false;
+
+  group.add(frontMesh);
+  return {
+    group,
+    meshes: [frontMesh],
+    materials: [frontMat],
+    geometries: [frontGeom],
+  };
 }
 
 function seededRandom() {
@@ -400,16 +541,21 @@ export function makeSlime(physics, environment) {
   sleepBubbleMesh.frustumCulled = false;
   group.add(sleepBubbleMesh);
 
-  // Accessories: Worker badge, dark circles, war-damaged bandaid
+  // Accessories: Worker badge, iced coffee, war-damaged bandaid
   const badge = makeBadge();
-  const darkCircles = makeDarkCircles();
+  const coffee = makeCoffee();
   const bandaid = makeBandaid();
-  const accessories = { badge, darkCircles, bandaid };
+  const accessories = {
+    badge,
+    coffee,
+    bandaid,
+    get darkCircles() { return coffee; },
+  };
 
   badge.group.visible = false;
-  darkCircles.group.visible = false;
+  coffee.group.visible = false;
   bandaid.group.visible = false;
-  group.add(badge.group, darkCircles.group, bandaid.group);
+  group.add(badge.group, coffee.group, bandaid.group);
   let currentAccessory = 'none';
 
   const p = { x: 0, y: 0, z: 0 };
@@ -428,7 +574,7 @@ export function makeSlime(physics, environment) {
     setAccessory(type = 'none') {
       currentAccessory = accessories[type] ? type : 'none';
       badge.group.visible = currentAccessory === 'badge';
-      darkCircles.group.visible = currentAccessory === 'darkCircles';
+      coffee.group.visible = currentAccessory === 'coffee' || currentAccessory === 'darkCircles';
       bandaid.group.visible = currentAccessory === 'bandaid';
       return currentAccessory;
     },
@@ -647,7 +793,7 @@ export function makeSlime(physics, environment) {
       starGeometry.dispose(); starMaterial.dispose();
       angerCrossGeom.dispose(); angerMaterial.dispose();
       sleepBubbleGeom.dispose(); sleepBubbleMat.dispose();
-      [badge, darkCircles, bandaid].forEach(acc => {
+      [badge, coffee, bandaid].forEach(acc => {
         acc.geometries.forEach(g => g.dispose());
         acc.materials.forEach(m => m.dispose());
       });

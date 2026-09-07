@@ -151,7 +151,8 @@ export function setupUI({ onColor, onAccessory, onStiffness, onDamping, onPoke, 
     const accKey = {
       none: 'accNone',
       badge: 'accBadge',
-      darkCircles: 'accDarkCircles',
+      coffee: 'accCoffee',
+      darkCircles: 'accCoffee',
       bandaid: 'accBandaid',
     }[type] ?? 'accNone';
     if (accessoryName) accessoryName.textContent = t(accKey);

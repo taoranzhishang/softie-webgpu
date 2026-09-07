@@ -180,7 +180,13 @@ test('worker accessories switch visibility and follow soft-body deformation fiel
   assert.equal(slime.accessories.darkCircles.group.visible, false);
   assert.equal(slime.accessories.bandaid.group.visible, false);
 
-  // Switch to darkCircles
+  // Switch to coffee
+  slime.setAccessory('coffee');
+  assert.equal(slime.accessory, 'coffee');
+  assert.equal(slime.accessories.coffee.group.visible, true);
+  assert.equal(slime.accessories.badge.group.visible, false);
+
+  // Switch to darkCircles (compatibility alias)
   slime.setAccessory('darkCircles');
   assert.equal(slime.accessory, 'darkCircles');
   assert.equal(slime.accessories.badge.group.visible, false);

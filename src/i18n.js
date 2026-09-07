@@ -16,8 +16,8 @@ export const messages = {
     initFailed: 'WebGPU 启动失败，请刷新页面，或使用支持 WebGPU 的新版浏览器。',
     moodChill: '佛系放空', moodAnnoyed: '有点烦躁', moodRage: '暴怒红温！', moodSleepy: '摸鱼打盹中…',
     moodLabel: '心情状态', workerQuote: '在工位上，我是一团没有骨头的果冻。', pokeAngry: '别戳了！',
-    accessory: '打工装扮', accNone: '素颜', accBadge: '工牌', accDarkCircles: '黑眼圈', accBandaid: '创可贴',
-    accNoneLabel: '素颜无配件', accBadgeLabel: '打工人工牌', accDarkCirclesLabel: '熬夜黑眼圈', accBandaidLabel: '战损创可贴',
+    accessory: '打工装扮', accNone: '素颜', accBadge: '工牌', accCoffee: '冰美式', accBandaid: '创可贴',
+    accNoneLabel: '素颜无配件', accBadgeLabel: '打工人工牌', accCoffeeLabel: '续命冰美式', accBandaidLabel: '战损创可贴',
   },
   en: {
     title: 'softie · Soft & squishy.', description: 'A soft little WebGPU slime. Squish, stretch, and let the day feel lighter.',
@@ -36,8 +36,8 @@ export const messages = {
     initFailed: 'WebGPU did not start. Refresh the page or use a recent browser that supports WebGPU.',
     moodChill: 'Chill & Cozy', moodAnnoyed: 'Slightly Annoyed', moodRage: 'Raging Hot!', moodSleepy: 'Slacking & Napping…',
     moodLabel: 'Current Mood', workerQuote: 'At work, I am just a boneless jelly.', pokeAngry: 'Stop poking!',
-    accessory: 'Accessories', accNone: 'Clean', accBadge: 'ID Badge', accDarkCircles: 'Tired Eyes', accBandaid: 'Band-aid',
-    accNoneLabel: 'Clean without accessories', accBadgeLabel: 'Worker ID Badge', accDarkCirclesLabel: 'Overworked tired eyes', accBandaidLabel: 'War-damaged band-aid',
+    accessory: 'Accessories', accNone: 'Clean', accBadge: 'ID Badge', accCoffee: 'Iced Coffee', accBandaid: 'Band-aid',
+    accNoneLabel: 'Clean without accessories', accBadgeLabel: 'Worker ID Badge', accCoffeeLabel: 'Lifesaver Iced Americano', accBandaidLabel: 'War-damaged band-aid',
   },
 };
 
