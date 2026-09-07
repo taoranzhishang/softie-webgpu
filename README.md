@@ -66,3 +66,7 @@ TEST_URL=http://127.0.0.1:4173 npm run test:browser
 - [Three.js WebGPURenderer 文档](https://threejs.org/docs/pages/WebGPURenderer.html)
 
 Three.js 默认的 WebGPURenderer 包含自动后备逻辑，本项目直接组合 WebGPUBackend 与 Renderer，从构造层面移除后备路径。
+
+## License
+
+Released under the [MIT License](LICENSE).
