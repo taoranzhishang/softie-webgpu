@@ -163,3 +163,48 @@ test('dizzy stars halo activates only during dizzy reaction and animates stably'
   assert.equal(slime.dizzyStars.visible, false, 'hidden after dizzy settles');
   slime.dispose();
 });
+
+test('worker accessories switch visibility and follow soft-body deformation field', () => {
+  const physics = new JellyPhysics();
+  const slime = makeSlime(physics);
+
+  assert.equal(slime.accessory, 'none');
+  assert.equal(slime.accessories.badge.group.visible, false);
+  assert.equal(slime.accessories.darkCircles.group.visible, false);
+  assert.equal(slime.accessories.bandaid.group.visible, false);
+
+  // Switch to badge
+  slime.setAccessory('badge');
+  assert.equal(slime.accessory, 'badge');
+  assert.equal(slime.accessories.badge.group.visible, true);
+  assert.equal(slime.accessories.darkCircles.group.visible, false);
+  assert.equal(slime.accessories.bandaid.group.visible, false);
+
+  // Switch to darkCircles
+  slime.setAccessory('darkCircles');
+  assert.equal(slime.accessory, 'darkCircles');
+  assert.equal(slime.accessories.badge.group.visible, false);
+  assert.equal(slime.accessories.darkCircles.group.visible, true);
+
+  // Switch to bandaid and deform
+  slime.setAccessory('bandaid');
+  assert.equal(slime.accessory, 'bandaid');
+  assert.equal(slime.accessories.bandaid.group.visible, true);
+
+  physics.beginGrab({ x: -0.3, y: 1.4, z: 1 }, { x: -0.3, y: 1.4, z: 1 });
+  physics.moveGrab({ x: -0.6, y: 2.2, z: 1 });
+  for (let i = 0; i < 30; i++) physics.update(1 / 120);
+  slime.update(0.3);
+
+  for (const mesh of slime.accessories.bandaid.meshes) {
+    const pos = mesh.geometry.attributes.position.array;
+    assert.ok(pos.every(Number.isFinite));
+  }
+
+  // Switch back to none
+  slime.setAccessory('none');
+  assert.equal(slime.accessory, 'none');
+  assert.equal(slime.accessories.bandaid.group.visible, false);
+
+  slime.dispose();
+});

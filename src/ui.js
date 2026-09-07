@@ -3,7 +3,7 @@ import { sound } from './sound.js';
 
 const DEFAULTS = { color: '#f17fa9', stiffness: 35, damping: 45, volume: 80 };
 
-export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWakeup }) {
+export function setupUI({ onColor, onAccessory, onStiffness, onDamping, onPoke, onReset, onWakeup }) {
   const stage = document.querySelector('#stage');
   const settings = document.querySelector('#settings-fieldset');
   const loading = document.querySelector('#loading');
@@ -13,7 +13,9 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
   const fpsText = document.querySelector('#fps');
   const swatches = [...document.querySelectorAll('[data-color]')];
   const colorName = document.querySelector('#color-name');
-  let language = 'zh', selectedColor = DEFAULTS.color, rendererState = 'pending', errorKey = 'initFailed';
+  const accPills = [...document.querySelectorAll('.acc-pill')];
+  const accessoryName = document.querySelector('#accessory-name');
+  let language = 'zh', selectedColor = DEFAULTS.color, selectedAccessory = 'none', rendererState = 'pending', errorKey = 'initFailed';
   let currentMood = 'chill';
   const moodBadge = document.querySelector('#mood-badge');
   const moodText = document.querySelector('#mood-text');
@@ -52,6 +54,7 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
       button.setAttribute('aria-pressed', String(button.dataset.language === language));
     }
     selectColor(selectedColor);
+    selectAccessory(selectedAccessory);
     renderStatus();
     renderMood();
   }
@@ -138,6 +141,31 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
     });
   }
 
+  function selectAccessory(type) {
+    selectedAccessory = type;
+    for (const pill of accPills) {
+      const active = pill.dataset.accessory === type;
+      pill.classList.toggle('is-selected', active);
+      pill.setAttribute('aria-pressed', String(active));
+    }
+    const accKey = {
+      none: 'accNone',
+      badge: 'accBadge',
+      darkCircles: 'accDarkCircles',
+      bandaid: 'accBandaid',
+    }[type] ?? 'accNone';
+    if (accessoryName) accessoryName.textContent = t(accKey);
+  }
+
+  for (const pill of accPills) {
+    pill.addEventListener('click', () => {
+      const type = pill.dataset.accessory;
+      selectAccessory(type);
+      if (typeof onAccessory === 'function') onAccessory(type);
+      sound.playBubble(1.25);
+    });
+  }
+
   for (const [id, callback] of [['stiffness', onStiffness], ['damping', onDamping]]) {
     let lastVal = DEFAULTS[id];
     document.querySelector(`#${id}`).addEventListener('input', event => {
@@ -221,6 +249,7 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
       }, 600);
     }
     selectColor(DEFAULTS.color);
+    selectAccessory('none');
     setRange('stiffness', DEFAULTS.stiffness);
     setRange('damping', DEFAULTS.damping);
     setRange('volume', DEFAULTS.volume);
@@ -288,6 +317,7 @@ export function setupUI({ onColor, onStiffness, onDamping, onPoke, onReset, onWa
       currentMood = mood;
       renderMood();
     },
+    setAccessory: selectAccessory,
     setFps(fps) {
       fpsText.textContent = Number.isFinite(fps) ? `${Math.round(fps)} FPS` : '— FPS';
     },

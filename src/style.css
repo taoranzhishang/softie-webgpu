@@ -668,6 +668,51 @@ fieldset {
   min-height: 24px;
   font-weight: 500;
 }
+.accessory-control {
+  margin-top: 24px;
+}
+.accessory-pills {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.acc-pill {
+  appearance: none;
+  border: 1px solid #dcdfd8;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #555752;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+.acc-pill:hover:not(:disabled) {
+  border-color: #171817;
+  color: #171817;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+.acc-pill:active:not(:disabled) {
+  transform: scale(0.95);
+}
+.acc-pill.is-selected {
+  border-color: #171817;
+  background: #171817;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(23, 24, 23, 0.15);
+}
+.accessory-name {
+  margin: 0;
+  color: #747570;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 24px;
+  font-weight: 500;
+}
 .range-control {
   margin-top: 29px;
 }

@@ -54,6 +54,10 @@ function poke() {
 }
 const ui = setupUI({
   onColor: ({ color }) => { slime?.setColor(color); studio?.setColor(color); slime?.faceMotion.react('wink'); },
+  onAccessory: type => {
+    slime?.setAccessory(type);
+    slime?.faceMotion.react('wink');
+  },
   onStiffness: stiffness => physics.setConfig({ stiffness }),
   onDamping: damping => physics.setConfig({ damping }),
   onPoke: poke,
@@ -62,6 +66,7 @@ const ui = setupUI({
     physics.reset();
     slime?.setColor('#f17fa9');
     studio?.setColor('#f17fa9');
+    slime?.setAccessory('none');
     slime?.faceMotion.reset();
     ui.setMood('chill');
   },

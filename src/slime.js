@@ -99,6 +99,118 @@ function makeStarGeometry(outerRadius = 0.052, innerRadius = 0.023, thickness = 
   return geometry;
 }
 
+// Accessory 1: Worker ID Card Badge (Black lanyard + ID card)
+function makeBadge() {
+  const group = new THREE.Group();
+  group.name = 'accessory-badge';
+
+  const leftPoints = [
+    new THREE.Vector3(-0.32, 1.45, frontAt(-0.32, 1.45) + 0.022),
+    new THREE.Vector3(-0.16, 1.15, frontAt(-0.16, 1.15) + 0.028),
+    new THREE.Vector3(0, 0.94, frontAt(0, 0.94) + 0.038),
+  ];
+  const rightPoints = [
+    new THREE.Vector3(0.32, 1.45, frontAt(0.32, 1.45) + 0.022),
+    new THREE.Vector3(0.16, 1.15, frontAt(0.16, 1.15) + 0.028),
+    new THREE.Vector3(0, 0.94, frontAt(0, 0.94) + 0.038),
+  ];
+  const leftTube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(leftPoints), 16, 0.008, 8, false);
+  const rightTube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rightPoints), 16, 0.008, 8, false);
+
+  const cardHolderGeom = new THREE.BoxGeometry(0.22, 0.28, 0.015);
+  cardHolderGeom.translate(0, 0.74, frontAt(0, 0.74) + 0.038);
+
+  const barcodeGeom = new THREE.BoxGeometry(0.12, 0.022, 0.018);
+  barcodeGeom.translate(0, 0.67, frontAt(0, 0.67) + 0.040);
+
+  const blackGeom = remember(mergeGeometries([leftTube, rightTube, cardHolderGeom, barcodeGeom]));
+  leftTube.dispose(); rightTube.dispose(); cardHolderGeom.dispose(); barcodeGeom.dispose();
+
+  const cardPaperGeom = new THREE.BoxGeometry(0.18, 0.22, 0.016);
+  cardPaperGeom.translate(0, 0.74, frontAt(0, 0.74) + 0.039);
+  const whiteGeom = remember(cardPaperGeom);
+
+  const blackMat = new THREE.MeshStandardNodeMaterial({
+    color: '#1a1819', roughness: 0.35, metalness: 0.15,
+  });
+  const whiteMat = new THREE.MeshStandardNodeMaterial({
+    color: '#edf1f5', roughness: 0.45, metalness: 0.05,
+  });
+
+  const holderMesh = new THREE.Mesh(blackGeom, blackMat);
+  const paperMesh = new THREE.Mesh(whiteGeom, whiteMat);
+  holderMesh.renderOrder = 3;
+  paperMesh.renderOrder = 3;
+  holderMesh.frustumCulled = false;
+  paperMesh.frustumCulled = false;
+
+  group.add(holderMesh, paperMesh);
+  return { group, meshes: [holderMesh, paperMesh], materials: [blackMat, whiteMat], geometries: [blackGeom, whiteGeom] };
+}
+
+// Accessory 2: Dark Circles (Overworked tired eyes)
+function makeDarkCircles() {
+  const group = new THREE.Group();
+  group.name = 'accessory-dark-circles';
+  const circles = [];
+  for (const cx of [-0.41, 0.41]) {
+    const geom = new THREE.SphereGeometry(1, 24, 16);
+    const p = geom.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = cx + p.getX(i) * 0.15;
+      const y = 1.05 + p.getY(i) * 0.048;
+      p.setXYZ(i, x, y, frontAt(x, y) + 0.016 + p.getZ(i) * 0.02);
+    }
+    geom.computeVertexNormals();
+    circles.push(geom);
+  }
+  const mergedGeom = remember(mergeGeometries(circles));
+  circles.forEach(g => g.dispose());
+
+  const mat = new THREE.MeshBasicNodeMaterial({
+    color: '#2e2336', transparent: true, opacity: 0.65, depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(mergedGeom, mat);
+  mesh.renderOrder = 3;
+  mesh.frustumCulled = false;
+  group.add(mesh);
+  return { group, meshes: [mesh], materials: [mat], geometries: [mergedGeom] };
+}
+
+// Accessory 3: Band-aid (War-damaged resilient worker)
+function makeBandaid() {
+  const group = new THREE.Group();
+  group.name = 'accessory-bandaid';
+
+  const tapeGeom = new THREE.BoxGeometry(0.25, 0.082, 0.012);
+  tapeGeom.rotateZ(0.48);
+  tapeGeom.translate(-0.36, 1.46, frontAt(-0.36, 1.46) + 0.028);
+
+  const padGeom = new THREE.BoxGeometry(0.08, 0.07, 0.016);
+  padGeom.rotateZ(0.48);
+  padGeom.translate(-0.36, 1.46, frontAt(-0.36, 1.46) + 0.030);
+
+  const tapeMeshGeom = remember(tapeGeom);
+  const padMeshGeom = remember(padGeom);
+
+  const tapeMat = new THREE.MeshStandardNodeMaterial({
+    color: '#cca685', roughness: 0.72, metalness: 0.0,
+  });
+  const padMat = new THREE.MeshStandardNodeMaterial({
+    color: '#f8f4f0', roughness: 0.55, metalness: 0.0,
+  });
+
+  const tapeMesh = new THREE.Mesh(tapeMeshGeom, tapeMat);
+  const padMesh = new THREE.Mesh(padMeshGeom, padMat);
+  tapeMesh.renderOrder = 3;
+  padMesh.renderOrder = 3;
+  tapeMesh.frustumCulled = false;
+  padMesh.frustumCulled = false;
+
+  group.add(tapeMesh, padMesh);
+  return { group, meshes: [tapeMesh, padMesh], materials: [tapeMat, padMat], geometries: [tapeMeshGeom, padMeshGeom] };
+}
+
 function seededRandom() {
   let n = 71561;
   return () => { n = (Math.imul(n, 1664525) + 1013904223) | 0; return (n >>> 0) / 4294967296; };
@@ -288,6 +400,18 @@ export function makeSlime(physics, environment) {
   sleepBubbleMesh.frustumCulled = false;
   group.add(sleepBubbleMesh);
 
+  // Accessories: Worker badge, dark circles, war-damaged bandaid
+  const badge = makeBadge();
+  const darkCircles = makeDarkCircles();
+  const bandaid = makeBandaid();
+  const accessories = { badge, darkCircles, bandaid };
+
+  badge.group.visible = false;
+  darkCircles.group.visible = false;
+  bandaid.group.visible = false;
+  group.add(badge.group, darkCircles.group, bandaid.group);
+  let currentAccessory = 'none';
+
   const p = { x: 0, y: 0, z: 0 };
   const crownP = { x: 0, y: 0, z: 0 };
   const moodP = { x: 0, y: 0, z: 0 };
@@ -300,6 +424,17 @@ export function makeSlime(physics, environment) {
   return {
     group, body, face, bubbles, gel, faceMotion, dizzyStars: dizzyStarsGroup,
     angerCross: angerCrossMesh, sleepBubble: sleepBubbleMesh,
+    accessories,
+    setAccessory(type = 'none') {
+      currentAccessory = accessories[type] ? type : 'none';
+      badge.group.visible = currentAccessory === 'badge';
+      darkCircles.group.visible = currentAccessory === 'darkCircles';
+      bandaid.group.visible = currentAccessory === 'bandaid';
+      return currentAccessory;
+    },
+    get accessory() {
+      return currentAccessory;
+    },
     setColor(color) {
       baseColorHex = color;
       baseGlassTint = glassTint(color);
@@ -489,6 +624,22 @@ export function makeSlime(physics, environment) {
         sleepBubbleMesh.position.set(moodP.x + breath * 0.03, moodP.y + breath * 0.05, moodP.z);
         sleepBubbleMat.opacity = Math.min(0.85, sleepy * 1.2);
       }
+
+      // Update active accessory with full soft-body deformation field
+      if (currentAccessory !== 'none' && accessories[currentAccessory]) {
+        const acc = accessories[currentAccessory];
+        for (const mesh of acc.meshes) {
+          const rest = mesh.geometry.userData.rest;
+          const positions = mesh.geometry.attributes.position;
+          for (let i = 0; i < positions.count; i++) {
+            const n = i * 3;
+            physics.deform(rest[n], rest[n + 1], rest[n + 2], p);
+            positions.setXYZ(i, p.x, p.y, p.z);
+          }
+          positions.needsUpdate = true;
+          mesh.geometry.computeVertexNormals();
+        }
+      }
     },
     dispose() {
       geometries.forEach(g => g.dispose());
@@ -496,6 +647,10 @@ export function makeSlime(physics, environment) {
       starGeometry.dispose(); starMaterial.dispose();
       angerCrossGeom.dispose(); angerMaterial.dispose();
       sleepBubbleGeom.dispose(); sleepBubbleMat.dispose();
+      [badge, darkCircles, bandaid].forEach(acc => {
+        acc.geometries.forEach(g => g.dispose());
+        acc.materials.forEach(m => m.dispose());
+      });
     },
   };
 }
