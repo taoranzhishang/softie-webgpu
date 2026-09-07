@@ -1,6 +1,12 @@
 # softie · 软乎乎。
 
-一个原生 WebGPU 的 Three.js 软体小玩具。
+[![License: MIT](https://img.shields.io/github/license/yuanyang749/softie-webgpu)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/demo-softie.520ai.site-4c6ef5)](https://softie.520ai.site)
+[![WebGPU](https://img.shields.io/badge/WebGPU-native-22863a)](https://www.w3.org/TR/webgpu/)
+[![Three.js](https://img.shields.io/badge/three.js-0.185-black)](https://threejs.org)
+[![GitHub stars](https://img.shields.io/github/stars/yuanyang749/softie-webgpu?style=social)](https://github.com/yuanyang749/softie-webgpu/stargazers)
+
+一个原生 WebGPU 的 Three.js 软体小玩具。在线体验：[https://softie.520ai.site](https://softie.520ai.site)
 
 ## 运行
 
