@@ -200,9 +200,9 @@ function makeBadge() {
       map: canvasTex, roughness: 0.4, metalness: 0.05,
       transparent: true, depthWrite: false,
     });
-    // Upgrade to AI-generated card artwork when loaded
+    // Upgrade to AI-generated card artwork when loaded (WebP compressed)
     const loader = new THREE.TextureLoader();
-    loader.load('/textures/worker_badge.png', (tex) => {
+    loader.load('/textures/worker_badge.webp', (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
       cardMat.map = tex;
       cardMat.needsUpdate = true;
@@ -236,32 +236,47 @@ function makeBadge() {
   };
 }
 
-// Accessory 2: Iced Americano Coffee (Die-cut direct sticker attached to body)
+// Accessory 2: Iced Americano Coffee (Die-cut direct sticker attached to body, sipping by mouth)
 function makeCoffee() {
   const group = new THREE.Group();
   group.name = 'accessory-coffee';
 
-  const cx = -0.42;
-  const cy = 0.62;
-  const cz = frontAt(cx, cy) + 0.024;
+  // Positioned near left cheek/mouth so the green straw directly touches the mouth corner
+  const cx = -0.22;
+  const cy = 0.82;
+  const rotZ = -0.28;
 
-  const transform = new THREE.Matrix4();
-  const rot = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.04, -0.22, -0.10));
-  const pos = new THREE.Matrix4().makeTranslation(cx, cy, cz);
-  transform.multiplyMatrices(pos, rot);
+  // Iced Coffee Cutout Graphic (Aspect ratio of cute iced_coffee.png is 398/708 ≈ 0.5621)
+  const cardW = 0.27;
+  const cardH = cardW / 0.5621;
 
-  // Iced Coffee Cutout Graphic (Aspect ratio of iced_coffee.png is ~0.593)
-  const cardW = 0.28;
-  const cardH = cardW / 0.593;
-  const cardGeomRaw = new THREE.PlaneGeometry(cardW, cardH, 4, 4);
-  cardGeomRaw.applyMatrix4(transform);
+  // Conformal curved geometry: 12x12 grid that curves along the slime body.
+  // Setting z = frontAt(x, y) + 0.032 ensures the entire cup, lid, ice, and straw
+  // are 100% visible and NEVER sliced/clipped by the spherical chest!
+  const segX = 12;
+  const segY = 12;
+  const cardGeomRaw = new THREE.PlaneGeometry(cardW, cardH, segX, segY);
+  const posAttr = cardGeomRaw.attributes.position;
+  const cos = Math.cos(rotZ);
+  const sin = Math.sin(rotZ);
+
+  for (let i = 0; i < posAttr.count; i++) {
+    const u = posAttr.getX(i);
+    const v = posAttr.getY(i);
+    const x = cx + u * cos - v * sin;
+    const y = cy + u * sin + v * cos;
+    const z = frontAt(x, y) + 0.032;
+    posAttr.setXYZ(i, x, y, z);
+  }
+  posAttr.needsUpdate = true;
+  cardGeomRaw.computeVertexNormals();
   const cardGeom = remember(cardGeomRaw);
 
   const isBrowser = typeof document !== 'undefined';
   let coffeeMat;
   if (isBrowser) {
     const loader = new THREE.TextureLoader();
-    const coffeeTex = loader.load('/textures/iced_coffee.png');
+    const coffeeTex = loader.load('/textures/iced_coffee.webp');
     coffeeTex.colorSpace = THREE.SRGBColorSpace;
     coffeeMat = new THREE.MeshStandardNodeMaterial({
       map: coffeeTex,
@@ -298,29 +313,42 @@ function makeBandaid() {
   const group = new THREE.Group();
   group.name = 'accessory-bandaid';
 
-  const cx = -0.36;
-  const cy = 1.46;
-  const cz = frontAt(cx, cy) + 0.022;
-
-  const transform = new THREE.Matrix4();
-  const rot = new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(0.04, -0.22, 0.48));
-  const pos = new THREE.Matrix4().makeTranslation(cx, cy, cz);
-  transform.multiplyMatrices(pos, rot);
+  // Moved higher up on the forehead (cy: 1.46 -> 1.68) so it does not crowd the left eye
+  const cx = -0.34;
+  const cy = 1.68;
+  const rotZ = 0.44;
 
   // Band-aid aspect ratio is 1257 / 485 ≈ 2.59
-  const bandW = 0.31;
+  const bandW = 0.32;
   const bandH = bandW / 2.59;
 
-  // Front texture plane with high-res medical plaster art (no rectangular box background)
-  const frontGeomRaw = new THREE.PlaneGeometry(bandW, bandH, 4, 2);
-  frontGeomRaw.applyMatrix4(transform);
+  // Conformal curved geometry: 12x6 grid that hugs the forehead surface.
+  // Setting z = frontAt(x, y) + offset for every vertex completely eliminates
+  // spherical clipping/cut-off and ensures the full plaster with both rounded ends is 100% visible!
+  const segX = 12;
+  const segY = 6;
+  const frontGeomRaw = new THREE.PlaneGeometry(bandW, bandH, segX, segY);
+  const posAttr = frontGeomRaw.attributes.position;
+  const cos = Math.cos(rotZ);
+  const sin = Math.sin(rotZ);
+
+  for (let i = 0; i < posAttr.count; i++) {
+    const u = posAttr.getX(i);
+    const v = posAttr.getY(i);
+    const x = cx + u * cos - v * sin;
+    const y = cy + u * sin + v * cos;
+    const z = frontAt(x, y) + 0.024;
+    posAttr.setXYZ(i, x, y, z);
+  }
+  posAttr.needsUpdate = true;
+  frontGeomRaw.computeVertexNormals();
   const frontGeom = remember(frontGeomRaw);
 
   const isBrowser = typeof document !== 'undefined';
   let frontMat;
   if (isBrowser) {
     const loader = new THREE.TextureLoader();
-    const bandaidTex = loader.load('/textures/bandaid.png');
+    const bandaidTex = loader.load('/textures/bandaid.webp');
     bandaidTex.colorSpace = THREE.SRGBColorSpace;
     frontMat = new THREE.MeshStandardNodeMaterial({
       map: bandaidTex,

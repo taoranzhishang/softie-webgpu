@@ -34,21 +34,44 @@ physics.onEntryComplete = () => {
   slime?.faceMotion.react('happy');
   sound.playWakeup();
 };
+let lastPokeTime = 0;
+let rapidPokeCount = 0;
+
 function poke() {
   if (!ready) return;
-  lastActivity = performance.now();
+  const now = performance.now();
+  lastActivity = now;
+
   if (slime?.faceMotion.isSleeping) {
+    rapidPokeCount = 0;
     slime.faceMotion.wakeUp(true);
     sound.playStartle();
     physics.poke();
-    slime.faceMotion.addAnger(0.14);
     return;
   }
+
   physics.poke();
-  slime?.faceMotion.addAnger(0.18);
-  if (slime?.faceMotion.anger > 0.6) {
-    sound.playAngryPoke(slime.faceMotion.anger);
+
+  const dtPoke = now - lastPokeTime;
+  lastPokeTime = now;
+
+  if (dtPoke < 750) {
+    rapidPokeCount++;
   } else {
+    rapidPokeCount = 1;
+  }
+
+  if (rapidPokeCount >= 2) {
+    // Rapid continuous poking: emotion shifts towards annoyed and angry
+    slime?.faceMotion.addAnger(0.20);
+    if (slime?.faceMotion.anger > 0.55) {
+      sound.playAngryPoke(slime.faceMotion.anger);
+    } else {
+      sound.playPoke();
+    }
+  } else {
+    // Single poke: restore original surprised round circle ':O' mouth!
+    slime?.faceMotion.react('surprised');
     sound.playPoke();
   }
 }
