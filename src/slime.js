@@ -532,24 +532,35 @@ export function makeSlime(physics, environment) {
   }
   group.add(dizzyStarsGroup);
 
-  // 3D Anger Cross: Pop cartoon vein icon jumping when angry
-  const hBar = new THREE.BoxGeometry(0.075, 0.018, 0.016);
-  const vBar = new THREE.BoxGeometry(0.018, 0.075, 0.016);
-  const angerCrossGeom = remember(mergeGeometries([hBar, vBar]));
-  hBar.dispose(); vBar.dispose();
+  // 3D Anger Cross: Glowing Neon Manga Sticker (Style 3 荧光爆燃发光能量贴图)
+  const angerMarkGeomRaw = new THREE.PlaneGeometry(0.35, 0.35);
+  const angerCrossGeom = remember(angerMarkGeomRaw);
+
+  const isBrowser = typeof document !== 'undefined';
+  const angerTexture = isBrowser
+    ? new THREE.TextureLoader().load('/textures/anger_mark.webp')
+    : new THREE.DataTexture(new Uint8Array([255, 30, 30, 255]), 1, 1);
+  angerTexture.colorSpace = THREE.SRGBColorSpace;
+
   const angerMaterial = new THREE.MeshStandardNodeMaterial({
-    color: '#ff203a',
-    emissive: '#ff0022',
-    emissiveIntensity: 0.65,
-    roughness: 0.22,
-    metalness: 0.2,
+    map: angerTexture,
+    emissiveMap: angerTexture,
+    emissive: new THREE.Color('#ff2200'),
+    emissiveIntensity: 0.85,
+    roughness: 0.18,
+    metalness: 0.05,
     transparent: true,
     depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
   });
   const angerCrossMesh = new THREE.Mesh(angerCrossGeom, angerMaterial);
   angerCrossMesh.name = 'mood-anger-cross';
   angerCrossMesh.visible = false;
   angerCrossMesh.frustumCulled = false;
+  // renderOrder 5 ensures it composites cleanly on top of the jelly body, bubbles, and face
+  angerCrossMesh.renderOrder = 5;
   group.add(angerCrossMesh);
 
   // 3D Sleep Bubble: Translucent bubble expanding & contracting with breathing rhythm
@@ -771,19 +782,46 @@ export function makeSlime(physics, environment) {
         }
       }
 
-      // Update 3D Anger Cross popping near right temple
-      const angerEffect = Math.max(angry, angerLevel);
-      if (angerEffect <= 0.15) {
+      // Update 3D Anger Cross popping near forehead right temple
+      const angerEffect = Math.max(angry, angerLevel, faceMotion.anger);
+      if (angerEffect <= 0.10) {
         if (angerCrossMesh.visible) angerCrossMesh.visible = false;
       } else {
         angerCrossMesh.visible = true;
-        physics.deform(0.52, 1.85, 0.65, moodP);
-        angerCrossMesh.position.set(moodP.x, moodP.y, moodP.z);
-        const pulse = 1 + Math.sin(time * 18) * 0.22;
-        const crossScale = Math.min(1.2, angerEffect * 1.4) * pulse;
+        // Sample forehead right temple coordinates on the outer surface
+        const templeX = 0.40;
+        const templeY = 1.74;
+        const templeZ = frontAt(templeX, templeY) + 0.045;
+        physics.deform(templeX, templeY, templeZ, moodP);
+
+        // Heartbeat pulse rhythm: classic double-beat (lub-dub) pumping
+        const heartPhase = (time * 2.6) % 1.0;
+        let heartPulse = 0;
+        if (heartPhase < 0.16) {
+          heartPulse = Math.sin((heartPhase / 0.16) * Math.PI) * 0.36;
+        } else if (heartPhase >= 0.20 && heartPhase < 0.36) {
+          heartPulse = Math.sin(((heartPhase - 0.20) / 0.16) * Math.PI) * 0.20;
+        }
+
+        // High-frequency anger twitching and tremor
+        const jitterAngle = (Math.sin(time * 38) * 0.07 + Math.sin(time * 54) * 0.04) * angerEffect;
+        const jitterX = Math.sin(time * 44) * 0.006 * angerEffect;
+        const jitterY = Math.cos(time * 50) * 0.006 * angerEffect;
+
+        angerCrossMesh.position.set(moodP.x + jitterX, moodP.y + jitterY, moodP.z);
+
+        // Smooth pop-in scale modulated by heartbeat and anger intensity
+        const popProgress = THREE.MathUtils.smoothstep(angerEffect, 0.10, 0.55);
+        const baseScale = popProgress * (0.85 + angerEffect * 0.35);
+        const crossScale = baseScale * (1 + heartPulse);
         angerCrossMesh.scale.setScalar(crossScale);
-        angerCrossMesh.rotation.z = 0.25 + Math.sin(time * 20) * 0.15;
-        angerMaterial.opacity = Math.min(1, angerEffect * 1.6);
+
+        // Normal alignment (tilts back with forehead curvature) + manga tilt + jitter
+        angerCrossMesh.rotation.set(-0.42 + jitterY * 4, 0.22 + jitterX * 4, 0.35 + jitterAngle);
+
+        // Dynamic emissive flash matching heartbeats
+        angerMaterial.opacity = Math.min(1, popProgress * 1.3);
+        angerMaterial.emissiveIntensity = 0.85 + heartPulse * 1.5 + angerEffect * 0.4;
       }
 
       // Update 3D Sleep Bubble expanding & contracting with breathing rhythm
@@ -819,7 +857,7 @@ export function makeSlime(physics, environment) {
       geometries.forEach(g => g.dispose());
       gel.dispose(); rearMaterial.dispose(); black.dispose(); bubbleGeometry.dispose(); bubbleMaterial.dispose();
       starGeometry.dispose(); starMaterial.dispose();
-      angerCrossGeom.dispose(); angerMaterial.dispose();
+      angerCrossGeom.dispose(); angerMaterial.dispose(); angerTexture.dispose();
       sleepBubbleGeom.dispose(); sleepBubbleMat.dispose();
       [badge, coffee, bandaid].forEach(acc => {
         acc.geometries.forEach(g => g.dispose());

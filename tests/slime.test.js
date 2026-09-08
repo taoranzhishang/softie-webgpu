@@ -214,3 +214,31 @@ test('worker accessories switch visibility and follow soft-body deformation fiel
 
   slime.dispose();
 });
+
+test('3D anger cross pops on right forehead during rage, uses renderOrder 5, and pulses stably', () => {
+  const physics = new JellyPhysics();
+  const slime = makeSlime(physics);
+
+  slime.update(0);
+  assert.equal(slime.angerCross.visible, false, 'hidden when idle');
+  assert.equal(slime.angerCross.renderOrder, 5, 'renderOrder 5 ensures top compositing over gel');
+
+  // Trigger rage
+  slime.faceMotion.react('angry');
+  for (let t = 0.05; t <= 0.4; t += 0.05) slime.update(t);
+
+  assert.equal(slime.angerCross.visible, true, 'visible during rage');
+  assert.ok(slime.angerCross.position.x > 0.25, 'located on right side of forehead');
+  assert.ok(slime.angerCross.position.y > 1.50, 'located well above eye level');
+  assert.ok(slime.angerCross.position.z > 0.80, 'located in front of slime surface');
+  assert.ok(slime.angerCross.scale.x > 0.40, 'scaled up during rage');
+  assert.ok(Number.isFinite(slime.angerCross.rotation.z), 'rotation angle is finite');
+
+  // After rage finishes and anger completely settles
+  slime.faceMotion.calmDown(1.0);
+  for (let t = 0.5; t <= 3.5; t += 0.1) slime.update(t);
+  assert.equal(slime.angerCross.visible, false, 'hidden after rage settles');
+
+  slime.dispose();
+});
+

@@ -12,9 +12,9 @@ let isDizzyPending = false;
 let lastSnoreTime = 0;
 let lastActivity = performance.now();
 const registerActivity = () => {
-  lastActivity = performance.now();
-  if (slime?.faceMotion.isSleeping) {
-    slime.faceMotion.wakeUp(false);
+  // Only update activity when awake so mouse movement never disturbs sleep
+  if (!slime?.faceMotion.isSleeping) {
+    lastActivity = performance.now();
   }
 };
 
@@ -171,6 +171,7 @@ async function start() {
   const clearGaze = () => slime.faceMotion.lookAt(0, 0);
   const followPointer = event => {
     if (event.pointerType !== 'mouse' || !finePointer.matches) { clearGaze(); return; }
+    if (slime?.faceMotion.isSleeping) return;
     const r = canvas.getBoundingClientRect();
     physics.deform(0, 1.2, 1.15, gazeOrigin);
     gazeOrigin.add(slime.group.position).project(camera);
@@ -193,8 +194,18 @@ async function start() {
   };
   canvas.addEventListener('pointerdown', event => {
     if (pointerId !== null || event.button !== 0) return;
+    lastActivity = performance.now();
     ray(event);
     const hit = raycaster.intersectObject(slime.body, false)[0];
+
+    // Clicking / tapping when asleep startles the slime awake!
+    if (slime?.faceMotion.isSleeping) {
+      slime.faceMotion.wakeUp(true);
+      sound.playStartle();
+      physics.poke();
+      if (!hit) return;
+    }
+
     if (!hit) return;
     pointerId = event.pointerId;
     pressTime = performance.now(); pressX = event.clientX; pressY = event.clientY; moved = false;
