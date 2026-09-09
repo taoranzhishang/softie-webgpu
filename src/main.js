@@ -4,9 +4,11 @@ import { makeSlime } from './slime.js';
 import { makeStudio } from './studio.js';
 import { setupUI } from './ui.js';
 import { sound } from './sound.js';
+import { RageMeter } from './rage-meter.js';
 import './style.css';
 
 const physics = new JellyPhysics();
+const rageMeter = new RageMeter();
 let slime, studio, ready = false;
 let isDizzyPending = false;
 let lastSnoreTime = 0;
@@ -51,6 +53,7 @@ function poke() {
   }
 
   physics.poke();
+  rageMeter.pulse(1.0);
 
   const dtPoke = now - lastPokeTime;
   lastPokeTime = now;
@@ -64,6 +67,7 @@ function poke() {
   if (rapidPokeCount >= 2) {
     // Rapid continuous poking: emotion shifts towards annoyed and angry
     slime?.faceMotion.addAnger(0.20);
+    rageMeter.pulse(1.4);
     if (slime?.faceMotion.anger > 0.55) {
       sound.playAngryPoke(slime.faceMotion.anger);
     } else {
@@ -92,6 +96,7 @@ const ui = setupUI({
     slime?.setAccessory('none');
     slime?.faceMotion.reset();
     ui.setMood('chill');
+    rageMeter.reset();
   },
   onWakeup: () => {
     const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -117,6 +122,7 @@ async function start() {
   renderer.setClearColor('#f5f5f3', 1);
   await renderer.init();
   if (!renderer.backend.isWebGPUBackend) throw new Error('nativeRequired');
+  rageMeter.setDevice(renderer.backend.device);
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#f5f5f3');
@@ -157,6 +163,7 @@ async function start() {
     camera.lookAt(0.19, lookAtY, 0);
     camera.setViewOffset(width, height, -left, -top, canvasWidth, canvasHeight);
     camera.updateProjectionMatrix();
+    rageMeter.resize();
   };
   const observer = new ResizeObserver(resize);
   observer.observe(stage);
@@ -369,8 +376,8 @@ async function start() {
     const dt = Math.min(Math.max(elapsed / 1000, 0), 1 / 15);
     time += dt;
 
-    // Sleep mode when inactive for 8.5 seconds
-    if (pointerId === null && !slime.faceMotion.isSleeping && now - lastActivity > 8500 && slime.faceMotion.anger < 0.25) {
+    // Sleep mode when inactive for 15 seconds
+    if (pointerId === null && !slime.faceMotion.isSleeping && now - lastActivity > 15000 && slime.faceMotion.anger < 0.25) {
       slime.faceMotion.fallAsleep();
     }
 
@@ -384,6 +391,7 @@ async function start() {
     slime.update(time);
     studio.update(physics.position);
     ui.setMood(slime.faceMotion.mood);
+    rageMeter.update(dt, slime.faceMotion.anger, slime.faceMotion.mood, slime.faceMotion.isSleeping);
     renderer.render(scene, camera);
     frames++; windowFrames++;
     frameTimes.push(elapsed);
@@ -415,7 +423,7 @@ async function start() {
     physics: { ...physics.diagnostics, center: { ...physics.position }, dragging: pointerId !== null },
   });
   if (import.meta.env.DEV || new URLSearchParams(location.search).has('test')) {
-    window.__SOFTIE__ = { getDiagnostics, physics, renderer, slime, studio, camera };
+    window.__SOFTIE__ = { getDiagnostics, physics, renderer, slime, studio, camera, rageMeter };
   }
   window.addEventListener('pagehide', () => {
     renderer.setAnimationLoop(null); observer.disconnect();
@@ -423,7 +431,7 @@ async function start() {
     window.removeEventListener('pointermove', followPointer);
     document.documentElement.removeEventListener('pointerleave', clearGaze);
     reducedMotion.removeEventListener('change', syncMotionPreference);
-    slime.dispose(); studio.dispose(); renderer.dispose();
+    slime.dispose(); studio.dispose(); renderer.dispose(); rageMeter.dispose();
   }, { once: true });
 }
 

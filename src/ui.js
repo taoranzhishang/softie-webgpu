@@ -20,6 +20,8 @@ export function setupUI({ onColor, onAccessory, onStiffness, onDamping, onPoke, 
   const moodBadge = document.querySelector('#mood-badge');
   const moodText = document.querySelector('#mood-text');
   const moodKeys = { chill: 'moodChill', annoyed: 'moodAnnoyed', rage: 'moodRage', sleepy: 'moodSleepy' };
+  const rageBadge = document.querySelector('#rage-hud-badge');
+  const rageKeys = { chill: 'rageChill', annoyed: 'rageAnnoyed', rage: 'rageMax', sleepy: 'rageSleepy' };
 
   try { if (localStorage.getItem('softie-language') === 'en') language = 'en'; } catch { /* Storage may be disabled. */ }
   const t = key => translate(language, key);
@@ -30,11 +32,17 @@ export function setupUI({ onColor, onAccessory, onStiffness, onDamping, onPoke, 
   }
 
   function renderMood() {
-    if (!moodBadge || !moodText) return;
-    moodBadge.dataset.mood = currentMood;
-    const key = moodKeys[currentMood] ?? 'moodChill';
-    moodText.textContent = t(key);
-    moodText.setAttribute('data-i18n', key);
+    if (moodBadge && moodText) {
+      moodBadge.dataset.mood = currentMood;
+      const key = moodKeys[currentMood] ?? 'moodChill';
+      moodText.textContent = t(key);
+      moodText.setAttribute('data-i18n', key);
+    }
+    if (rageBadge) {
+      const rKey = rageKeys[currentMood] ?? 'rageChill';
+      rageBadge.textContent = t(rKey);
+      rageBadge.setAttribute('data-i18n', rKey);
+    }
   }
 
   function setLanguage(value) {

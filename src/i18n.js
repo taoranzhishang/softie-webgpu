@@ -18,6 +18,7 @@ export const messages = {
     moodLabel: '心情状态', workerQuote: '在工位上，我是一团没有骨头的果冻。', pokeAngry: '别戳了！',
     accessory: '打工装扮', accNone: '素颜', accBadge: '工牌', accCoffee: '冰美式', accBandaid: '创可贴',
     accNoneLabel: '素颜无配件', accBadgeLabel: '打工人工牌', accCoffeeLabel: '续命冰美式', accBandaidLabel: '战损创可贴',
+    rageTitle: '打工怨气槽', rageChill: '摸鱼放空中', rageAnnoyed: '有点上火', rageHot: '暴怒升温', rageMax: 'MAX 怨气爆表!', rageSleepy: '呼噜充能中…', rageMeterLabel: '打工怨气进度条',
   },
   en: {
     title: 'softie · Soft & squishy.', description: 'A soft little WebGPU slime. Squish, stretch, and let the day feel lighter.',
@@ -38,6 +39,7 @@ export const messages = {
     moodLabel: 'Current Mood', workerQuote: 'At work, I am just a boneless jelly.', pokeAngry: 'Stop poking!',
     accessory: 'Accessories', accNone: 'Clean', accBadge: 'ID Badge', accCoffee: 'Iced Coffee', accBandaid: 'Band-aid',
     accNoneLabel: 'Clean without accessories', accBadgeLabel: 'Worker ID Badge', accCoffeeLabel: 'Lifesaver Iced Americano', accBandaidLabel: 'War-damaged band-aid',
+    rageTitle: 'Fury Gauge', rageChill: 'Chill & Slacking', rageAnnoyed: 'Simmering', rageHot: 'Heating Up', rageMax: 'MAX RAGE!', rageSleepy: 'Napping…', rageMeterLabel: 'Slime fury progress meter',
   },
 };
 
