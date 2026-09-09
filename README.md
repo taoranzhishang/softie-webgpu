@@ -15,7 +15,7 @@ npm install
 npm run dev
 ```
 
-打开 http://127.0.0.1:5173 。生产构建与预览：
+打开 http://127.0.0.1:5173 。 生产构建与预览：
 
 ```sh
 npm run build
