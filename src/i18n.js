@@ -16,7 +16,7 @@ export const messages = {
     initFailed: 'WebGPU 启动失败，请刷新页面，或使用支持 WebGPU 的新版浏览器。',
   },
   en: {
-    title: 'softie · Soft & squishy.', description: 'A soft little WebGPU slime. Squish, stretch, and let the day feel lighter.',
+    title: 'softie · Soft & squishy', description: 'A soft little WebGPU slime. Squish, stretch, and let the day feel lighter.',
     home: 'softie home', tagline: 'A LITTLE ROOM TO PLAY', heading: 'Softie', intro: 'A little squish. A lighter day.',
     language: 'Interface language', chinese: '中文 Chinese', english: 'English', soundToggle: 'Sound toggle', soundOn: 'Sound on', soundOff: 'Muted',
     canvas: 'Interactive slime: hold to squish, drag to lift, and release to bounce. You can also press Space to poke.',
