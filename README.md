@@ -1,19 +1,15 @@
-# softie · 软乎乎。
+# softie · 软乎乎
 
 <p align="center">
   <img src="docs/images/promo-poster.png" alt="softie · 软乎乎" width="520" />
 </p>
 
-[![License: MIT](https://img.shields.io/github/license/yuanyang749/softie-webgpu)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-softie.520ai.site-4c6ef5)](https://softie.520ai.site)
 [![WebGPU](https://img.shields.io/badge/WebGPU-native-22863a)](https://www.w3.org/TR/webgpu/)
 [![Three.js](https://img.shields.io/badge/three.js-0.185-black)](https://threejs.org)
-[![GitHub stars](https://img.shields.io/github/stars/yuanyang749/softie-webgpu?style=social)](https://github.com/yuanyang749/softie-webgpu/stargazers)
 
 一个基于原生 WebGPU 的治愈系 3D 软体减压小玩具与休闲消除游戏。
 
-在线体验：[https://softie.520ai.site](https://softie.520ai.site)
-
+在线体验：[https://softie.pages.dev/](https://softie.pages.dev/)
 ---
 
 ## 核心功能
